@@ -51,7 +51,9 @@ This platform will:
 - Integrate with Canvas and Brightspace via LTI 1.3  
 - Deliver immediate AI-generated feedback and after-action reports  
 - Log audio, video, transcripts, and behavioral data for assessment  
-- Align with CSWE competencies and accreditation requirements  
+- Align with CSWE competencies and accreditation requirements
+- Mobile responsive web app
+- TODO Accesibily  
 
 OxbridgeEducation proposes a hybrid system combining:
 - A robust LTI-integrated avatar and media platform  
@@ -290,7 +292,13 @@ USC controls infrastructure, AI provider, and usage limits.
 
 ## 24. Operational Staffing Model (Post Phase 1)
 
-- 1–2 internal full-stack engineers  
+- 1 internal full-stack AI software engineer
+- 2 software developers
+- 1 automation engineer
+- 1 instructional designer
+- 1 a/v production support
+- 1 customer success manager
+- 1 scrum master
 
 ---
 
@@ -305,29 +313,32 @@ USC controls infrastructure, AI provider, and usage limits.
 
 - 90-day post-launch warranty  
 - Liability covers system defects only  
-- No liability for third-party AI outages  
+- No liability for external outages  
 
 ---
 
 ## 27. Data Governance & Institutional Ethics
 
 - FERPA-aligned  
-- AI bias mitigation  
+- AI bias mitigation (guardrails will be included)  
 - Faculty oversight  
-- Student data deletion rights  
+- Student data deletion rights
+- Student data will be archived after 4 years
 
 ---
 
 ## 28. Disaster Recovery & Business Continuity
 
 - Encrypted nightly backups  
-- RTO < 2 hours  
-- RPO < 15 minutes  
+- RTO < 24 hours  
+- RPO < 12 hours  
 
 ---
 
 ## Appendix A – Legal IP & Ownership Framework
 
 - USC owns 100% of all source code  
-- USC owns all simulations and tools  
-- OxbridgeEducation retains no resale rights  
+- USC owns all simulations and tools
+- USC owns all third-party technology
+- USC is responsible for all third party tools and licensing  
+- OxbridgeEducation retains no resale rights of this platform 
