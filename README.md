@@ -1,4 +1,4 @@
-# USC AI Social Work Simulations (Secure Scaffold)
+# USC AI Social Work Simulations
 
 This repository is a **security-focused, full-stack scaffold** for the USC Suzanne Dworak-Peck School of Social Work AI simulation platform.
 
