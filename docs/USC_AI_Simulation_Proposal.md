@@ -1,8 +1,8 @@
 # USC Suzanne Dworak-Peck School of Social Work
-## AI-Powered Virtual Simulation & Avatar Training Platform
-### Business Plan & Technical Proposal  
+## AI-Powered Virtual Simulation & Avatar Training Platform  
+### Hybrid Business & Technical Proposal  
 Prepared By: OxbridgeEducation  
-Total Cost: $278,000 | Full IP Ownership | 6–7 Month Delivery
+Phase 1 Only | Full IP Ownership | Milestone-Based | Total Cost: $278,000 | 6–7 Month Delivery
 
 ---
 
@@ -11,94 +11,92 @@ Total Cost: $278,000 | Full IP Ownership | 6–7 Month Delivery
 1. Executive Summary  
 2. USC Objectives & Program Alignment  
 3. Platform Scope Overview (Phase 1)  
-4. Commercial & Ownership Structure  
-5. Development Phases & Milestones  
-6. Primary User Roles  
-7. Core AI Simulation Capabilities  
-8. Learning Analytics & Outcomes  
+4. Pedagogical & Accreditation Alignment (CSWE EPAS)  
+5. Primary User Roles  
+6. Core AI Simulation Capabilities  
+7. Learning Analytics & Outcomes  
+8. LTI 1.3 LMS Integration  
 9. Security, Privacy & Compliance  
 10. High-Level Technical Architecture  
-11. Phase 1 Success Metrics  
-12. Phase 2 Expansion Opportunities (Optional)  
-13. Institutional Advantages  
-14. Conclusion  
-15. System Architecture Diagram (ASCII)  
-16. Market Validation & Strategic Justification  
-17. Competitive Landscape Analysis  
-18. Adoption & Change Management Strategy  
-19. Institutional Risk Analysis  
-20. Accreditation Alignment (CSWE EPAS)  
-21. Strategic Positioning for USC  
-22. Project Pricing, Payment Schedule & Phase 2 Options  
+11. Phase 1 Deliverables  
+12. Phase 1 Success Metrics  
+13. Phase 2 Expansion Opportunities (Optional, Not Contracted)  
+14. Institutional Advantages  
+15. Market Validation & Strategic Justification  
+16. Competitive Landscape Summary  
+17. Adoption & Change Management Strategy  
+18. Institutional Risk Analysis  
+19. Strategic Positioning for USC  
+20. System Architecture Diagram (ASCII)  
+21. Phase 1 Development Timeline  
+22. Project Pricing & Payments (Phase 1 Only)  
+23. Long-Term Cost Sustainability & Institutional Control  
+24. Operational Staffing Model (Post Phase 1)  
+25. Expansion Readiness & Research Enablement  
+26. Risk, Liability & Warranty  
+27. Data Governance & Institutional Ethics  
+28. Disaster Recovery & Business Continuity  
 Appendix A – Legal IP & Ownership Framework  
 
 ---
 
 ## 1. Executive Summary
 
-The USC Suzanne Dworak-Peck School of Social Work seeks to deploy an AI-powered simulation platform to prepare Bachelor and Master of Social Work students for real-world practice.
+The USC Suzanne Dworak-Peck School of Social Work seeks to deploy an advanced AI-powered simulation platform to prepare Bachelor and Master of Social Work students for practice with individuals, families, groups, organizations, and communities.
 
-The platform will:
-- Provide realistic AI-driven virtual client simulations with voice interaction  
-- Represent diverse clients aligned with ADEIB principles  
+This platform will:
+- Provide realistic, AI-driven virtual client simulations with natural conversational voice  
+- Represent diverse client identities aligned with ADEIB principles  
+- Complement community-based practicum education with structured, repeatable simulations  
 - Integrate with Canvas and Brightspace via LTI 1.3  
-- Provide immediate AI-generated feedback and analytics  
-- Align with CSWE competencies  
-- Support both asynchronous and synchronous delivery  
+- Deliver immediate AI-generated feedback and after-action reports  
+- Log audio, video, transcripts, and behavioral data for assessment  
+- Align with CSWE competencies and accreditation requirements  
 
-OxbridgeEducation proposes a hybrid AI avatar + LMS-integrated platform with **full IP ownership transferred to USC**.
+OxbridgeEducation proposes a hybrid system combining:
+- A robust LTI-integrated avatar and media platform  
+- A social-work-specific AI-driven simulation, assessment, and analytics engine  
+
+USC will receive full and exclusive ownership of all source code, system architecture, simulation engines, and documentation.
 
 ---
 
 ## 2. USC Objectives & Program Alignment
 
-- Micro, mezzo, and macro level practice  
-- CSWE EPAS alignment  
-- ADEIB embedded throughout content and design  
-- Practicum augmentation  
-- Future-proof extensibility  
-- Stakeholder co-design approach  
+- Integrative social work education across micro, mezzo, and macro practice  
+- CSWE EPAS competency mapping and assessment  
+- ADEIB-centered scenario design  
+- Futureproof, extensible institutional technology  
+- Stakeholder-driven co-design  
 
 ---
 
 ## 3. Platform Scope Overview (Phase 1)
 
-### Core Features
+Phase 1 delivers:
+- Synchronous and asynchronous AI-driven simulations  
 - Natural conversational voice interaction  
-- AI-driven avatar simulations  
-- Scenario branching  
-- Immediate AI feedback  
-- Video and transcript recording  
+- Realistic avatar-based virtual clients  
+- Scenario branching based on student decisions  
+- AI-generated immediate feedback  
+- Video, audio, and transcript capture  
 - Faculty authoring tools  
-- LTI 1.3 LMS integration  
-- Initial simulation library  
+- LMS-grade integration via LTI 1.3  
 
 ---
 
-## 4. Commercial & Ownership Structure
+## 4. Pedagogical & Accreditation Alignment (CSWE EPAS)
 
-| Category | Details |
-|----------|---------|
-| Total Cost | $278,000 |
-| Delivery Timeline | 6–7 months |
-| Ownership | Full IP transfer to USC |
-| Model | Milestone-based |
-| Licensing Fees | None |
-
----
-
-## 5. Development Phases & Milestones
-
-| Phase | Description | Timeline |
-|------|-------------|----------|
-| 1 | Architecture, Pedagogy, UX | Month 1 |
-| 2 | Core Platform Build | Months 2–4 |
-| 3 | AI & Assessment | Month 5 |
-| 4 | Testing & Launch | Months 6–7 |
+Simulations align with:
+- Ethical and professional behavior  
+- Diversity and difference in practice  
+- Engagement, assessment, intervention, evaluation  
+- Policy practice and advocacy  
+- Research-informed practice  
 
 ---
 
-## 6. Primary User Roles
+## 5. Primary User Roles
 
 - Platform Administrator  
 - Faculty / Instructor  
@@ -108,33 +106,43 @@ OxbridgeEducation proposes a hybrid AI avatar + LMS-integrated platform with **f
 
 ---
 
-## 7. Core AI Simulation Capabilities
+## 6. Core AI Simulation Capabilities
 
-- Real-time voice conversation  
-- Steerable personas  
-- Adaptive scenario branching  
-- Rubric-based assessment  
-- AI coaching and after-action reports  
+- Real-time conversational voice AI  
+- Steerable virtual client personas  
+- Emotionally responsive dialogue  
+- Configurable scenario difficulty  
+- Branching decision trees  
+- Faculty-reviewable AI feedback  
 
 ---
 
-## 8. Learning Analytics & Outcomes
+## 7. Learning Analytics & Outcomes
 
-- Session tracking  
-- Communication quality metrics  
-- Decision path analysis  
-- Longitudinal performance tracking  
+- Session completion tracking  
+- Communication quality indicators  
+- Decision-path analysis  
+- Longitudinal student performance  
 - Accreditation-ready reporting  
+
+---
+
+## 8. LTI 1.3 LMS Integration
+
+- Secure OIDC Single Sign-On  
+- Deep linking into Canvas & Brightspace  
+- Automated grade passback  
+- FERPA-aligned identity handling  
 
 ---
 
 ## 9. Security, Privacy & Compliance
 
 - FERPA-aligned architecture  
-- Encrypted storage  
 - Role-based access control  
-- Secure API boundaries  
-- Human-in-the-loop safety model  
+- Encrypted storage  
+- No secrets in frontend code  
+- Full audit logging  
 
 ---
 
@@ -143,99 +151,183 @@ OxbridgeEducation proposes a hybrid AI avatar + LMS-integrated platform with **f
 - Frontend: Next.js, React 18  
 - Backend: Node.js, NestJS  
 - Database: PostgreSQL  
-- AI Layer: Claude Sonnet compatible  
-- LMS Integration: LTI 1.3  
-- Infrastructure: Aptible + GitHub Actions  
+- AI Layer: Claude-compatible abstraction  
+- Infrastructure: CI/CD via GitHub Actions, Aptible  
 
 ---
 
-## 11. Phase 1 Success Metrics
+## 11. Phase 1 Deliverables
+
+1. Production-ready web platform  
+2. Faculty authoring console  
+3. Student simulation experience  
+4. Scenario library  
+5. Two synchronous simulations  
+6. Three asynchronous simulations  
+7. AI-driven assessment engine  
+8. LTI 1.3 integration  
+9. Accessibility-compliant UI  
+10. Documentation  
+11. Full IP & source code transfer  
+
+---
+
+## 12. Phase 1 Success Metrics
 
 - Live Canvas integration  
-- 2 synchronous and 3 asynchronous simulations  
-- Faculty adoption  
+- Faculty authoring functional  
+- Students completing simulations  
+- Verified grade passback  
 - 99.5% uptime  
-- Zero security incidents  
+- Zero critical security incidents  
 
 ---
 
-## 12. Phase 2 Expansion Opportunities
+## 13. Phase 2 Expansion Opportunities
 
-- Non-verbal analysis  
-- Virtual communities  
+Not included in Phase 1 pricing:
+- Non-verbal biometric analysis  
+- Virtual neighborhoods  
+- Enterable homes  
 - Multi-client simulations  
-- Advanced predictive analytics  
+- Predictive analytics  
 
 ---
 
-## 13. Institutional Advantages
+## 14. Institutional Advantages
 
-- Full platform ownership  
 - No per-seat licensing  
-- Research and grant-ready  
-- Commercialization potential  
+- Full institutional control  
+- Research-ready  
+- Long-term cost savings  
 
 ---
 
-## 14. Conclusion
+## 15. Market Validation & Strategic Justification
 
-This platform establishes USC as a national leader in AI-driven social work education with full institutional control.
-
----
-
-## 15. System Architecture Diagram (ASCII)
-
-```
-LMS (Canvas/Brightspace)
-        |
-        v
-   Backend API (NestJS)
-        |
-   AI Engine (Claude)
-        |
-   PostgreSQL Database
-        |
-   Media Storage
-        |
-   Frontend (Next.js)
-```
+Simulation improves:
+- Skill transfer  
+- Practice readiness  
+- Ethical decision-making  
 
 ---
 
-## 16–21. Strategic & Academic Validation
+## 16. Competitive Landscape Summary
 
-- Market need validated  
-- Competitive differentiation established  
-- Adoption strategy defined  
-- Risk mitigation documented  
-- CSWE accreditation mapping confirmed  
-- USC strategic leadership reinforced  
+- Real-time AI + avatars  
+- Full IP ownership  
+- Unlimited scenario creation  
 
 ---
 
-## 22. Project Pricing & Payments
+## 17. Adoption & Change Management Strategy
 
-**Total Phase 1 Cost: $278,000 USD**
-
-| Phase | Payment |
-|--------|----------|
-| Phase 1 | 15% |
-| Phase 2 | 20% |
-| Phase 3 | 20% |
-| Phase 4 | 20% |
-| Phase 5 | 15% |
-| Phase 6 | 10% |
-| Total | 100% |
+- Faculty pilot group  
+- Training workshops  
+- Documentation and guides  
 
 ---
 
-## Appendix A – Legal IP & Ownership
+## 18. Institutional Risk Analysis
 
-- USC owns 100% of source code  
-- USC owns all simulation engines  
-- USC owns all documentation  
-- OxbridgeEducation retains no reuse rights  
+- AI bias → faculty oversight  
+- Data privacy → FERPA architecture  
+- Adoption risk → pilot program  
 
 ---
 
-_End of Proposal_
+## 19. Strategic Positioning for USC
+
+USC becomes:
+- National leader in AI social work education  
+- Research innovation hub  
+
+---
+
+## 20. System Architecture Diagram (ASCII)
+
+LMS (Canvas / Brightspace)  
+↓  
+Backend API (NestJS)  
+↓  
+AI Engine (Claude / LLM)  
+↓  
+PostgreSQL Database  
+↓  
+Media Storage  
+↑  
+Frontend (Next.js)  
+
+---
+
+## 21. Phase 1 Development Timeline
+
+- Month 1: Architecture, UX, SRS  
+- Months 2–4: Core Platform Build  
+- Month 5: AI, Avatar, Assessment  
+- Months 6–7: QA, LMS Integration, Launch  
+
+---
+
+## 22. Project Pricing & Payments (Phase 1 Only)
+
+Total Fixed Phase 1 Cost: $278,000 USD
+
+- Phase 1.1 – Architecture & UX: 15% ($41,700)  
+- Phase 1.2 – Backend & LTI Core: 20% ($55,600)  
+- Phase 1.3 – Frontend & Authoring: 20% ($55,600)  
+- Phase 1.4 – AI & Avatar Integration: 20% ($55,600)  
+- Phase 1.5 – Analytics, QA, Security: 15% ($41,700)  
+- Phase 1.6 – Launch, Handover, IP Transfer: 10% ($27,800)  
+
+---
+
+## 23. Long-Term Cost Sustainability & Institutional Control
+
+USC controls infrastructure, AI provider, and usage limits.
+
+---
+
+## 24. Operational Staffing Model (Post Phase 1)
+
+- 1–2 internal full-stack engineers  
+
+---
+
+## 25. Expansion Readiness & Research Enablement
+
+- Grant funding ready  
+- Multi-school expansion capable  
+
+---
+
+## 26. Risk, Liability & Warranty
+
+- 90-day post-launch warranty  
+- Liability covers system defects only  
+- No liability for third-party AI outages  
+
+---
+
+## 27. Data Governance & Institutional Ethics
+
+- FERPA-aligned  
+- AI bias mitigation  
+- Faculty oversight  
+- Student data deletion rights  
+
+---
+
+## 28. Disaster Recovery & Business Continuity
+
+- Encrypted nightly backups  
+- RTO < 2 hours  
+- RPO < 15 minutes  
+
+---
+
+## Appendix A – Legal IP & Ownership Framework
+
+- USC owns 100% of all source code  
+- USC owns all simulations and tools  
+- OxbridgeEducation retains no resale rights  
