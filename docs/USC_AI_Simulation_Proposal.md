@@ -671,7 +671,7 @@ All pricing is fixed and includes all development, testing, documentation, train
 - **Fixed development cost**: One-time Phase 1 cost with no recurring development fees
 - **USC controls infrastructure**: USC chooses hosting provider and can optimize costs
 - **USC controls AI provider**: USC selects AI provider and manages usage/costs
-- **Usage-based AI costs**: Pay only for actual AI API usage (typically $0.01-0.03 per session)
+- **Usage-based AI costs**: Pay only for actual AI API usage.
 - **Scalable hosting**: Hosting costs scale with usage, USC can optimize based on needs
 
 ### Institutional Control
