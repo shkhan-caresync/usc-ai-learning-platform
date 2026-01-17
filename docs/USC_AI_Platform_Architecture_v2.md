@@ -1,7 +1,7 @@
 # USC AI Simulation Platform
-## Architecture & Costing Document (No LTI)
+## Architecture & Costing Document (No LTI) — Pilot Program
 ### Contract-Ready Technical Specification
-Version: 2.0 | Date: January 2026
+Version: 2.1 | Date: January 2026
 
 ---
 
@@ -10,9 +10,9 @@ Version: 2.0 | Date: January 2026
 1. System Architecture Overview
 2. Architecture Diagram Description
 3. Technology Decisions & Assumptions
-4. Functional Requirements
-5. Non-Functional Requirements
-6. AWS Cost Breakdown
+4. Functional Requirements (Pilot Scope)
+5. Non-Functional Requirements (Pilot Scale)
+6. AWS Cost Breakdown (Pilot)
 7. Explicit Exclusions
 
 ---
@@ -21,59 +21,64 @@ Version: 2.0 | Date: January 2026
 
 ### Design Principles
 
-The USC AI Simulation Platform is architected as a **standalone, cloud-native web application** with no LMS dependencies. The platform operates independently, providing its own authentication, user management, and course organization capabilities.
+The USC AI Simulation Platform is architected as a **standalone, cloud-native web application** designed for pilot-scale deployment. The architecture prioritizes simplicity, cost-efficiency, and rapid deployment while maintaining security and extensibility for future growth.
 
 | Principle | Implementation |
 |-----------|----------------|
-| **Cloud-Native** | AWS-native services with infrastructure-as-code |
-| **API-First** | RESTful APIs with OpenAPI specification; all features accessible via API |
-| **Stateless Compute** | Horizontally scalable API layer with no session affinity requirements |
-| **Event-Driven** | Asynchronous processing for AI inference, media processing, and analytics |
-| **Security-by-Design** | Zero-trust networking, encryption at rest/transit, FERPA-aware data handling |
-| **Multi-Tenant Ready** | Logical isolation supporting multiple schools/departments within USC |
+| **Cloud-Native** | AWS-managed services to minimize operational overhead |
+| **API-First** | RESTful APIs with OpenAPI specification |
+| **Simplicity-First** | Minimal components for pilot; add complexity as needed |
+| **Security-by-Design** | Encryption at rest/transit, FERPA-aware data handling |
+| **Cost-Efficient** | Right-sized for pilot scale (~200-500 students) |
 
-### High-Level Architecture Tiers
+### High-Level Architecture (Pilot)
 
 ```
 ┌─────────────────────────────────────────────────────────────────────────────┐
 │                              PRESENTATION TIER                               │
-│  • Next.js 15 Web Application (SSR/SSG)                                     │
-│  • CloudFront CDN Distribution                                               │
-│  • S3 Static Asset Hosting                                                   │
+│  • Next.js 15 Web Application                                               │
+│  • CloudFront CDN                                                            │
+│  • S3 Static Assets                                                          │
 └─────────────────────────────────────────────────────────────────────────────┘
                                       │
                                       ▼
 ┌─────────────────────────────────────────────────────────────────────────────┐
 │                              APPLICATION TIER                                │
 │  • API Gateway (REST + WebSocket)                                           │
-│  • ECS Fargate (Containerized Services)                                     │
-│  • Lambda Functions (Event Processing)                                       │
+│  • ECS Fargate (Containerized API)                                          │
 └─────────────────────────────────────────────────────────────────────────────┘
                                       │
                                       ▼
 ┌─────────────────────────────────────────────────────────────────────────────┐
 │                              INTELLIGENCE TIER                               │
-│  • AWS Bedrock (LLM Orchestration)                                          │
-│  • Taevus Avatar Service (External)                                          │
-│  • Amazon Transcribe (Speech-to-Text)                                        │
-│  • Amazon Polly (Text-to-Speech)                                             │
+│  • AWS Bedrock (LLM)                                                        │
+│  • Tavus (Avatar + Speech-to-Text + Text-to-Speech) — External              │
 └─────────────────────────────────────────────────────────────────────────────┘
                                       │
                                       ▼
 ┌─────────────────────────────────────────────────────────────────────────────┐
 │                                DATA TIER                                     │
-│  • Aurora PostgreSQL (Transactional)                                        │
-│  • DynamoDB (Session State)                                                  │
+│  • RDS PostgreSQL (All Data)                                                │
 │  • S3 (Media Storage)                                                        │
-│  • Timestream (Analytics)                                                    │
 └─────────────────────────────────────────────────────────────────────────────┘
 ```
+
+### Pilot Simplifications
+
+| Full-Scale Component | Pilot Approach | Rationale |
+|---------------------|----------------|-----------|
+| Aurora Serverless | RDS PostgreSQL (single instance) | Lower cost, sufficient for pilot load |
+| DynamoDB | PostgreSQL JSONB columns | Single database simplifies operations |
+| ElastiCache Redis | In-memory caching in app | Not needed at pilot scale |
+| OpenSearch | PostgreSQL full-text search | Built-in, no extra service |
+| Timestream | PostgreSQL analytics tables | Single data store |
+| Multi-AZ | Single-AZ with backups | Acceptable for pilot; upgrade later |
 
 ---
 
 ## 2. Architecture Diagram Description
 
-The following structured description can be directly converted into Lucidchart, Draw.io, Mermaid, or Excalidraw formats.
+The following structured description can be converted to Lucidchart, Draw.io, Mermaid, or Excalidraw.
 
 ### Component Inventory
 
@@ -81,71 +86,51 @@ The following structured description can be directly converted into Lucidchart, 
 | ID | Component | Description |
 |----|-----------|-------------|
 | U1 | Students | End users accessing simulations via web browser |
-| U2 | Faculty/Instructors | Scenario authors, graders, analytics viewers |
-| U3 | Platform Administrators | System configuration, user management |
-| U4 | Content Creators | Scenario and persona designers |
+| U2 | Faculty | Scenario authors, graders, analytics viewers |
+| U3 | Administrators | System configuration, user management |
 
 #### Frontend Components
 | ID | Component | AWS Service | Description |
 |----|-----------|-------------|-------------|
-| F1 | Web Application | CloudFront + S3 | Next.js 15 application with SSR via Lambda@Edge |
-| F2 | CDN Distribution | CloudFront | Global edge caching for static assets |
-| F3 | Static Assets | S3 | Images, fonts, compiled JavaScript bundles |
+| F1 | Web Application | CloudFront + S3 | Next.js 15 application |
+| F2 | Static Assets | S3 | Images, fonts, JavaScript bundles |
 
-#### API Gateway Layer
+#### API Layer
 | ID | Component | AWS Service | Description |
 |----|-----------|-------------|-------------|
-| G1 | REST API Gateway | API Gateway | Primary API entry point with rate limiting |
+| G1 | REST API | API Gateway | Primary API entry point |
 | G2 | WebSocket API | API Gateway | Real-time simulation communication |
-| G3 | WAF | AWS WAF | Web application firewall for DDoS protection |
 
 #### Backend Services (ECS Fargate)
 | ID | Component | Description |
 |----|-----------|-------------|
-| S1 | Auth Service | User authentication, JWT token management, RBAC |
-| S2 | User Service | User profiles, preferences, course enrollment |
-| S3 | Scenario Service | Scenario CRUD, versioning, publishing workflow |
-| S4 | Simulation Service | Simulation session management, state machine |
-| S5 | Assessment Service | AI feedback generation, scoring, rubrics |
-| S6 | Analytics Service | Event ingestion, reporting, dashboards |
-| S7 | Media Service | Upload handling, transcoding, streaming |
+| S1 | API Service | Monolithic API handling auth, users, scenarios, simulations, assessments |
 
 #### AI & Avatar Services
 | ID | Component | Service | Description |
 |----|-----------|---------|-------------|
-| A1 | LLM Orchestrator | AWS Bedrock | Foundation model routing (Claude, Llama, Titan) |
-| A2 | Prompt Manager | Custom (ECS) | Prompt templates, context injection, guardrails |
-| A3 | Avatar Renderer | Taevus (External) | AI avatar video generation and streaming |
-| A4 | Speech-to-Text | Amazon Transcribe | Real-time student speech transcription |
-| A5 | Text-to-Speech | Amazon Polly | AI avatar voice synthesis |
+| A1 | LLM | AWS Bedrock | Foundation model (Claude 3.5 Sonnet) |
+| A2 | Avatar + Voice | Tavus (External) | AI avatar with integrated STT/TTS |
 
 #### Data Stores
 | ID | Component | AWS Service | Purpose |
 |----|-----------|-------------|---------|
-| D1 | Primary Database | Aurora PostgreSQL | Users, scenarios, courses, assessments |
-| D2 | Session Store | DynamoDB | Simulation state, conversation history |
-| D3 | Media Store | S3 | Video recordings, audio files, documents |
-| D4 | Analytics Store | Timestream | Time-series analytics events |
-| D5 | Cache Layer | ElastiCache Redis | Session cache, API response cache |
-| D6 | Search Index | OpenSearch | Scenario search, transcript search |
+| D1 | Primary Database | RDS PostgreSQL | Users, scenarios, sessions, analytics |
+| D2 | Media Store | S3 | Video recordings, audio, documents |
 
-#### Security Boundary
+#### Security & Auth
 | ID | Component | AWS Service | Purpose |
 |----|-----------|-------------|---------|
 | SEC1 | VPC | VPC | Network isolation |
-| SEC2 | Private Subnets | VPC | Backend services isolation |
-| SEC3 | NAT Gateway | NAT Gateway | Outbound internet for private subnets |
-| SEC4 | Secrets Manager | Secrets Manager | API keys, database credentials |
-| SEC5 | KMS | KMS | Encryption key management |
-| SEC6 | Cognito | Cognito | User pool, identity federation (optional SAML) |
+| SEC2 | Auth | Cognito | User pool, optional SAML SSO |
+| SEC3 | Secrets | Secrets Manager | API keys, credentials |
 
 #### Observability
 | ID | Component | AWS Service | Purpose |
 |----|-----------|-------------|---------|
-| O1 | Logs | CloudWatch Logs | Centralized logging |
-| O2 | Metrics | CloudWatch Metrics | System and custom metrics |
-| O3 | Traces | X-Ray | Distributed tracing |
-| O4 | Alarms | CloudWatch Alarms | Alerting and auto-remediation |
+| O1 | Logs | CloudWatch Logs | Application and access logs |
+| O2 | Metrics | CloudWatch Metrics | Basic system metrics |
+| O3 | Alarms | CloudWatch Alarms | Critical alerts |
 
 ### Data Flow Descriptions
 
@@ -154,61 +139,47 @@ The following structured description can be directly converted into Lucidchart, 
 U1 (Student) 
   → F1 (Web App) 
   → G1 (API Gateway) 
-  → S4 (Simulation Service) 
-  → D2 (DynamoDB - load state)
+  → S1 (API Service) 
+  → D1 (PostgreSQL - load state)
   → A1 (Bedrock - generate response)
-  → A3 (Taevus - render avatar)
+  → A2 (Tavus - render avatar with voice)
+  → G2 (WebSocket - stream)
+  → F1 (Web App)
+  → U1 (Student sees/hears avatar)
+```
+
+#### Flow 2: Real-Time Voice Interaction
+```
+U1 (Student speaks)
+  → F1 (Web App - capture audio)
   → G2 (WebSocket)
+  → A2 (Tavus - STT transcription)
+  → S1 (API Service)
+  → A1 (Bedrock - generate AI response)
+  → A2 (Tavus - TTS + avatar render)
+  → G2 (WebSocket - stream video/audio)
   → F1 (Web App)
   → U1 (Student)
 ```
 
-#### Flow 2: Faculty Scenario Authoring
+#### Flow 3: Faculty Scenario Authoring
 ```
 U2 (Faculty)
   → F1 (Web App)
   → G1 (API Gateway)
-  → SEC6 (Cognito - auth)
-  → S3 (Scenario Service)
-  → D1 (Aurora - persist)
-  → A2 (Prompt Manager - validate)
+  → SEC2 (Cognito - auth)
+  → S1 (API Service)
+  → D1 (PostgreSQL - persist)
   → Response
 ```
 
-#### Flow 3: Real-Time Voice Interaction
-```
-U1 (Student - speaks)
-  → F1 (Web App - capture audio)
-  → G2 (WebSocket)
-  → A4 (Transcribe - STT)
-  → S4 (Simulation Service)
-  → A1 (Bedrock - generate)
-  → A5 (Polly - TTS)
-  → A3 (Taevus - lip sync)
-  → G2 (WebSocket - stream)
-  → F1 (Web App)
-  → U1 (Student - sees/hears avatar)
-```
-
-#### Flow 4: Analytics Pipeline
-```
-S4 (Simulation Service - emit event)
-  → Lambda (Event Processor)
-  → Kinesis Data Firehose
-  → D4 (Timestream - store)
-  → S6 (Analytics Service - query)
-  → F1 (Dashboard)
-  → U2 (Faculty)
-```
-
-### Network Topology
+### Network Topology (Pilot)
 
 | Zone | Components | Access |
 |------|------------|--------|
-| **Public Subnet** | ALB, NAT Gateway | Internet-facing |
-| **Private Subnet A** | ECS Tasks, Lambda | Internal only |
-| **Private Subnet B** | Aurora, ElastiCache, DynamoDB endpoints | Internal only |
-| **Edge** | CloudFront, WAF | Global edge locations |
+| **Public Subnet** | ALB | Internet-facing |
+| **Private Subnet** | ECS Tasks, RDS | Internal only |
+| **Edge** | CloudFront | CDN distribution |
 
 ---
 
@@ -218,302 +189,195 @@ S4 (Simulation Service - emit event)
 
 | Decision | Choice | Rationale |
 |----------|--------|-----------|
-| **Primary LLM** | AWS Bedrock | Managed service, HIPAA-eligible, no data training, multiple model access |
-| **Default Model** | Claude 3.5 Sonnet | Best balance of capability, latency, and cost for educational dialogue |
-| **Fallback Model** | Llama 3.1 70B | Cost optimization for non-critical prompts |
-| **Embedding Model** | Amazon Titan Embeddings | Native AWS integration for scenario search |
-| **Model Abstraction** | Custom orchestration layer | Enables A/B testing, fallback routing, cost controls |
+| **LLM Provider** | AWS Bedrock | Managed service, FERPA-friendly, no data training |
+| **Default Model** | Claude 3.5 Sonnet | Best quality for educational dialogue |
+| **Fallback** | Claude 3 Haiku | Cost optimization for simple prompts (future) |
 
 **Assumptions:**
-- Average simulation session: 15-20 AI turns
-- Average prompt size: 2,000 tokens input, 500 tokens output
-- Claude 3.5 Sonnet pricing: $0.003/1K input, $0.015/1K output tokens
-- Llama 3.1 70B pricing: $0.00099/1K input, $0.00099/1K output tokens
+- Average simulation session: 15 AI turns
+- Average prompt: 1,500 tokens input, 400 tokens output
+- Claude 3.5 Sonnet: $0.003/1K input, $0.015/1K output tokens
 
-### Avatar Services
-
-| Decision | Choice | Rationale |
-|----------|--------|-----------|
-| **Avatar Provider** | Taevus | High-quality AI avatars, real-time rendering, API-first |
-| **Integration Pattern** | External managed service | Taevus handles rendering, platform handles orchestration |
-| **Fallback** | Static avatar with audio | Graceful degradation if Taevus unavailable |
-
-**Note:** Taevus costs are **excluded** from this estimate per scope requirements. Taevus is treated as a managed external dependency.
-
-### Infrastructure
+### Avatar & Voice Services
 
 | Decision | Choice | Rationale |
 |----------|--------|-----------|
-| **Compute** | ECS Fargate | Serverless containers, no EC2 management, auto-scaling |
-| **Container Orchestration** | ECS (not EKS) | Simpler operations, lower cost, sufficient for workload |
-| **Primary Database** | Aurora PostgreSQL Serverless v2 | Auto-scaling, pay-per-use, PostgreSQL compatibility |
-| **Session Store** | DynamoDB | Sub-millisecond latency, auto-scaling, pay-per-request |
-| **Caching** | ElastiCache Redis | Session caching, API response caching, rate limiting |
-| **CDN** | CloudFront | Global distribution, S3 integration, Lambda@Edge |
-| **API Gateway** | AWS API Gateway | Managed, scalable, native AWS integration |
+| **Avatar Provider** | Tavus | All-in-one: avatar + STT + TTS |
+| **Integration** | External managed service | Tavus handles all voice/video processing |
+| **Speech-to-Text** | Tavus (included) | No separate AWS service needed |
+| **Text-to-Speech** | Tavus (included) | No separate AWS service needed |
 
-**Alternatives Considered:**
+**Note:** Tavus costs are **excluded** from AWS estimates per scope requirements.
 
-| Alternative | Decision | Reason |
-|-------------|----------|--------|
-| EKS vs ECS | ECS selected | Lower operational overhead, no K8s expertise required |
-| RDS vs Aurora | Aurora selected | Better scaling, serverless option, cost efficiency at scale |
-| MongoDB vs PostgreSQL | PostgreSQL selected | ACID compliance, relational integrity for user data |
-| Lambda-only vs ECS | ECS primary | Better for long-running WebSocket connections |
+### Infrastructure (Pilot-Optimized)
 
-### Data Architecture
+| Decision | Choice | Rationale |
+|----------|--------|-----------|
+| **Compute** | ECS Fargate | Serverless containers, simple scaling |
+| **Database** | RDS PostgreSQL (db.t3.medium) | Single instance sufficient for pilot |
+| **Caching** | Application-level | No Redis needed at pilot scale |
+| **Search** | PostgreSQL full-text | Built-in, no extra service |
+| **CDN** | CloudFront | Static asset delivery |
+| **API Gateway** | AWS API Gateway | Managed REST + WebSocket |
 
-| Data Type | Storage | Retention | Encryption |
-|-----------|---------|-----------|------------|
-| User accounts | Aurora PostgreSQL | Indefinite | AES-256 |
-| Scenarios | Aurora PostgreSQL | Indefinite | AES-256 |
-| Simulation state | DynamoDB | 30 days active, then S3 archive | AES-256 |
-| Conversation history | DynamoDB + S3 | 4 years (FERPA) | AES-256 |
-| Video recordings | S3 Intelligent-Tiering | 4 years | AES-256 |
-| Analytics events | Timestream | 90 days hot, 4 years cold | AES-256 |
-| Audit logs | CloudWatch + S3 | 7 years | AES-256 |
+### Data Architecture (Simplified)
+
+| Data Type | Storage | Retention |
+|-----------|---------|-----------|
+| User accounts | PostgreSQL | Indefinite |
+| Scenarios | PostgreSQL | Indefinite |
+| Simulation sessions | PostgreSQL (JSONB) | 1 year |
+| Conversation history | PostgreSQL (JSONB) | 1 year |
+| Video recordings | S3 Standard | 1 year |
+| Analytics | PostgreSQL | 1 year |
+| Audit logs | CloudWatch Logs | 1 year |
 
 ---
 
-## 4. Functional Requirements
+## 4. Functional Requirements (Pilot Scope)
 
 ### 4.1 User Management & Authentication
 
-| ID | Requirement | Priority |
-|----|-------------|----------|
-| AUTH-01 | Email/password authentication with email verification | P0 |
-| AUTH-02 | SAML 2.0 SSO integration (USC identity provider) | P0 |
-| AUTH-03 | Multi-factor authentication (TOTP) | P1 |
-| AUTH-04 | Password reset via email with secure tokens | P0 |
-| AUTH-05 | Session management with configurable timeout | P0 |
-| AUTH-06 | Role-based access control (Student, Faculty, Admin, Content Creator) | P0 |
-| AUTH-07 | User profile management (name, avatar, preferences) | P1 |
-| AUTH-08 | Bulk user import via CSV | P1 |
-| AUTH-09 | User invitation workflow with email notifications | P1 |
+| ID | Requirement |
+|----|-------------|
+| AUTH-01 | Email/password authentication with email verification |
+| AUTH-02 | SAML 2.0 SSO integration (USC identity provider) |
+| AUTH-03 | Password reset via email |
+| AUTH-04 | Role-based access control (Student, Faculty, Admin) |
+| AUTH-05 | Basic user profile (name, email) |
 
-### 4.2 Course & Cohort Management
+### 4.2 Course Management
 
-| ID | Requirement | Priority |
-|----|-------------|----------|
-| COURSE-01 | Create/edit/archive courses with metadata | P0 |
-| COURSE-02 | Assign faculty to courses (instructor, TA roles) | P0 |
-| COURSE-03 | Enroll students individually or via bulk import | P0 |
-| COURSE-04 | Self-enrollment with access codes | P1 |
-| COURSE-05 | Course cloning for new semesters | P1 |
-| COURSE-06 | Cohort grouping within courses | P1 |
-| COURSE-07 | Course start/end dates with auto-archive | P2 |
+| ID | Requirement |
+|----|-------------|
+| COURSE-01 | Create/edit courses with name and description |
+| COURSE-02 | Assign faculty to courses |
+| COURSE-03 | Enroll students (manual or CSV import) |
+| COURSE-04 | Assign scenarios to courses |
 
 ### 4.3 Scenario Authoring
 
-| ID | Requirement | Priority |
-|----|-------------|----------|
-| SCEN-01 | Visual scenario builder with drag-and-drop | P0 |
-| SCEN-02 | Client persona configuration (demographics, personality, backstory) | P0 |
-| SCEN-03 | AI behavior configuration (tone, boundaries, triggers) | P0 |
-| SCEN-04 | Branching conversation paths with conditions | P0 |
-| SCEN-05 | Scenario versioning with rollback | P1 |
-| SCEN-06 | Draft/review/publish workflow | P0 |
-| SCEN-07 | Scenario preview mode for authors | P0 |
-| SCEN-08 | Scenario templates and cloning | P1 |
-| SCEN-09 | Media upload (images, documents, reference materials) | P1 |
-| SCEN-10 | CSWE competency tagging for scenarios | P0 |
-| SCEN-11 | Difficulty level configuration | P1 |
-| SCEN-12 | Time limits and session configuration | P1 |
+| ID | Requirement |
+|----|-------------|
+| SCEN-01 | Create/edit scenarios with client persona details |
+| SCEN-02 | Configure AI behavior (system prompt, boundaries) |
+| SCEN-03 | Set scenario metadata (title, description, competencies) |
+| SCEN-04 | Preview scenario before publishing |
+| SCEN-05 | Publish/unpublish scenarios |
 
 ### 4.4 Simulation Execution
 
-| ID | Requirement | Priority |
-|----|-------------|----------|
-| SIM-01 | Real-time voice conversation with AI avatar | P0 |
-| SIM-02 | Text-based conversation fallback | P0 |
-| SIM-03 | Live avatar rendering with lip-sync | P0 |
-| SIM-04 | Session state persistence (resume interrupted sessions) | P0 |
-| SIM-05 | Conversation transcript display | P0 |
-| SIM-06 | Session recording (audio/video) | P0 |
-| SIM-07 | In-simulation note-taking | P1 |
-| SIM-08 | Emergency session termination | P0 |
-| SIM-09 | Session time tracking | P0 |
-| SIM-10 | Mobile-responsive simulation interface | P1 |
+| ID | Requirement |
+|----|-------------|
+| SIM-01 | Real-time voice conversation with AI avatar (via Tavus) |
+| SIM-02 | Text-based conversation fallback |
+| SIM-03 | Live avatar with lip-sync (via Tavus) |
+| SIM-04 | Conversation transcript display |
+| SIM-05 | Session recording (audio/video stored to S3) |
+| SIM-06 | End session and trigger assessment |
 
 ### 4.5 Assessment & Feedback
 
-| ID | Requirement | Priority |
-|----|-------------|----------|
-| ASSESS-01 | AI-generated immediate feedback post-session | P0 |
-| ASSESS-02 | Rubric-based scoring with configurable criteria | P0 |
-| ASSESS-03 | CSWE competency mapping in feedback | P0 |
-| ASSESS-04 | Faculty review/override of AI feedback | P0 |
-| ASSESS-05 | Detailed after-action report generation | P0 |
-| ASSESS-06 | Transcript annotation by faculty | P1 |
-| ASSESS-07 | Comparative feedback across attempts | P2 |
-| ASSESS-08 | Export assessment data (PDF, CSV) | P1 |
+| ID | Requirement |
+|----|-------------|
+| ASSESS-01 | AI-generated feedback post-session |
+| ASSESS-02 | Display feedback to student |
+| ASSESS-03 | Faculty can view student feedback |
+| ASSESS-04 | Faculty can add comments/override score |
+| ASSESS-05 | Export assessment as PDF |
 
-### 4.6 Analytics & Reporting
+### 4.6 Analytics (Basic)
 
-| ID | Requirement | Priority |
-|----|-------------|----------|
-| ANLYT-01 | Student dashboard (completion, scores, progress) | P0 |
-| ANLYT-02 | Faculty dashboard (class overview, individual students) | P0 |
-| ANLYT-03 | Admin dashboard (platform-wide metrics) | P0 |
-| ANLYT-04 | Completion rate tracking | P0 |
-| ANLYT-05 | Time-on-task analytics | P1 |
-| ANLYT-06 | Competency attainment tracking | P1 |
-| ANLYT-07 | Cohort comparison reports | P2 |
-| ANLYT-08 | Custom report builder | P2 |
-| ANLYT-09 | Data export (CSV, Excel, PDF) | P1 |
-| ANLYT-10 | Scheduled report delivery via email | P2 |
+| ID | Requirement |
+|----|-------------|
+| ANLYT-01 | Student view: my completed simulations and scores |
+| ANLYT-02 | Faculty view: class completion rates and average scores |
+| ANLYT-03 | Admin view: platform usage summary |
+| ANLYT-04 | Export data as CSV |
 
 ### 4.7 Administration
 
-| ID | Requirement | Priority |
-|----|-------------|----------|
-| ADMIN-01 | Platform configuration management | P0 |
-| ADMIN-02 | User management (create, disable, delete) | P0 |
-| ADMIN-03 | Role and permission management | P0 |
-| ADMIN-04 | Audit log viewing | P0 |
-| ADMIN-05 | System health dashboard | P1 |
-| ADMIN-06 | Usage monitoring and quotas | P1 |
-| ADMIN-07 | Announcement/notification system | P2 |
-| ADMIN-08 | Data retention policy configuration | P1 |
-
-### 4.8 Environment Management
-
-| ID | Requirement | Priority |
-|----|-------------|----------|
-| ENV-01 | Development environment (isolated) | P0 |
-| ENV-02 | Staging environment (production mirror) | P0 |
-| ENV-03 | Production environment | P0 |
-| ENV-04 | Environment-specific configuration management | P0 |
-| ENV-05 | Database seeding for non-production | P1 |
-| ENV-06 | Feature flags for gradual rollout | P1 |
+| ID | Requirement |
+|----|-------------|
+| ADMIN-01 | User management (create, disable users) |
+| ADMIN-02 | View audit logs |
+| ADMIN-03 | Platform configuration (site name, etc.) |
 
 ---
 
-## 5. Non-Functional Requirements
+## 5. Non-Functional Requirements (Pilot Scale)
 
-### 5.1 Scalability
-
-| Metric | Target | Notes |
-|--------|--------|-------|
-| **Concurrent Users** | 500 simultaneous | Peak usage during class times |
-| **Active Students/Month** | 2,000 | Phase 1 target |
-| **Simulations/Day** | 1,000 | Average across all students |
-| **Peak Simulations/Hour** | 200 | During scheduled class sessions |
-| **Data Growth** | 500 GB/year | Video, audio, transcripts |
-| **Horizontal Scaling** | Auto-scale 2x-10x | Based on demand |
-
-**Scaling Strategy:**
-- ECS Fargate: Target tracking scaling on CPU/memory (target 70%)
-- Aurora: Auto-scaling storage, read replicas for analytics
-- DynamoDB: On-demand capacity mode
-- API Gateway: Burst limits configured per endpoint
-
-### 5.2 Availability
+### 5.1 Scalability (Pilot Targets)
 
 | Metric | Target | Notes |
 |--------|--------|-------|
-| **Uptime SLA** | 99.5% | ~3.6 hours downtime/month allowed |
-| **Planned Maintenance** | < 4 hours/month | Off-peak hours only |
-| **RTO** | < 4 hours | Recovery time objective |
-| **RPO** | < 1 hour | Recovery point objective |
-| **Multi-AZ** | Yes | All stateful services |
+| **Active Students** | 200-500 | Pilot cohort |
+| **Concurrent Users** | 50 | Peak during class |
+| **Simulations/Day** | 100 | ~2 per active student/week |
+| **Data Growth** | 50 GB/year | Video, audio, transcripts |
 
-**Availability Strategy:**
-- Aurora: Multi-AZ deployment with automatic failover
-- ECS: Tasks distributed across multiple AZs
-- S3: 99.999999999% durability, cross-region replication for backups
-- CloudFront: Global edge distribution
+### 5.2 Availability (Pilot)
 
-### 5.3 Performance / Latency
+| Metric | Target | Notes |
+|--------|--------|-------|
+| **Uptime** | 99% | ~7 hours downtime/month acceptable |
+| **Maintenance Window** | Weekends | Scheduled downtime OK |
+| **Backup Frequency** | Daily | Automated snapshots |
+| **Recovery Time** | < 24 hours | From backup |
 
-| Operation | Target Latency | P99 |
-|-----------|----------------|-----|
-| Page load (initial) | < 2s | < 4s |
-| API response (CRUD) | < 200ms | < 500ms |
-| AI response generation | < 3s | < 6s |
-| Avatar render start | < 2s | < 4s |
-| Speech-to-text | < 1s | < 2s |
-| Search results | < 500ms | < 1s |
-| Report generation | < 10s | < 30s |
+### 5.3 Performance
 
-**Performance Strategy:**
-- Redis caching for frequently accessed data
-- CloudFront caching for static assets (TTL: 1 day)
-- Database connection pooling
-- Async processing for non-critical paths
-- Streaming responses for AI generation
+| Operation | Target |
+|-----------|--------|
+| Page load | < 3s |
+| API response | < 500ms |
+| AI response | < 4s |
+| Avatar render start | < 3s (Tavus dependent) |
 
 ### 5.4 Security
 
 | Control | Implementation |
 |---------|----------------|
-| **Authentication** | Cognito with SAML federation, JWT tokens (1-hour expiry) |
-| **Authorization** | RBAC with resource-level permissions |
-| **Encryption at Rest** | AES-256 via KMS (all data stores) |
-| **Encryption in Transit** | TLS 1.3 enforced |
-| **Network Security** | VPC isolation, security groups, NACLs |
-| **API Security** | WAF, rate limiting, input validation |
-| **Secrets Management** | AWS Secrets Manager (rotation enabled) |
-| **Audit Logging** | CloudTrail (API), application audit logs |
-| **Vulnerability Scanning** | ECR image scanning, dependency scanning |
-| **Penetration Testing** | Annual third-party assessment |
+| **Authentication** | Cognito with optional SAML |
+| **Authorization** | Role-based (Student, Faculty, Admin) |
+| **Encryption at Rest** | RDS encryption, S3 encryption |
+| **Encryption in Transit** | TLS 1.2+ |
+| **Network** | VPC with private subnets |
+| **Secrets** | AWS Secrets Manager |
+| **Audit Logging** | CloudWatch Logs |
 
-**FERPA Considerations:**
-- Student PII encrypted at rest and in transit
-- Access logging for all student data
-- Data minimization (collect only necessary data)
-- Configurable retention with secure deletion
-- No data sharing with third parties without consent
-
-### 5.5 Cost Control Mechanisms
+### 5.5 Cost Controls
 
 | Mechanism | Implementation |
 |-----------|----------------|
-| **AI Token Budgets** | Per-simulation token limits, monthly caps |
-| **Tiered Model Routing** | Route simple prompts to cheaper models |
-| **Caching** | Cache repeated prompts/responses |
-| **Resource Scheduling** | Scale down non-production after hours |
-| **Storage Tiering** | S3 Intelligent-Tiering for media |
-| **Reserved Capacity** | Reserved instances for baseline compute |
-| **Cost Alerts** | Budget alerts at 50%, 80%, 100% |
-| **Usage Dashboards** | Real-time cost visibility |
+| **AI Token Limits** | Per-session cap (e.g., 50K tokens) |
+| **Budget Alerts** | AWS Budget at 80%, 100% |
+| **Auto-scaling Limits** | Max 2 ECS tasks |
+| **S3 Lifecycle** | Move old media to Glacier after 90 days |
 
-### 5.6 Observability & Logging
+### 5.6 Observability
 
-| Component | Tool | Retention |
-|-----------|------|-----------|
-| **Application Logs** | CloudWatch Logs | 30 days (hot), 1 year (archive) |
-| **Access Logs** | CloudWatch Logs | 7 years (compliance) |
-| **Metrics** | CloudWatch Metrics | 15 months |
-| **Traces** | X-Ray | 30 days |
-| **Dashboards** | CloudWatch Dashboards | N/A |
-| **Alerts** | CloudWatch Alarms + SNS | N/A |
-| **Error Tracking** | Sentry (optional) | 90 days |
-
-**Key Metrics Tracked:**
-- Request rate, error rate, latency (API)
-- AI token usage and costs
-- Active simulations
-- Database connections and query performance
-- Cache hit rates
-- User activity (DAU, MAU)
+| Component | Tool |
+|-----------|------|
+| **Logs** | CloudWatch Logs |
+| **Metrics** | CloudWatch Metrics (basic) |
+| **Alerts** | CloudWatch Alarms (errors, latency) |
 
 ---
 
-## 6. AWS Cost Breakdown
+## 6. AWS Cost Breakdown (Pilot)
 
 ### Assumptions
 
-| Parameter | Value | Notes |
-|-----------|-------|-------|
-| Active students/month | 1,000 (low) / 1,500 (expected) / 2,000 (high) | |
-| Simulations per student/month | 4 | Average across all scenarios |
-| AI turns per simulation | 18 | Back-and-forth conversation |
-| Avg input tokens/turn | 2,000 | Includes context |
-| Avg output tokens/turn | 500 | AI response |
-| Video storage per session | 50 MB | 10-minute average session |
-| Peak concurrent users | 200 / 350 / 500 | Based on student count |
-| Environment | Production only | Dev/staging add ~20% |
+| Parameter | Value |
+|-----------|-------|
+| Active students/month | 200 (low) / 350 (expected) / 500 (high) |
+| Simulations per student/month | 3 |
+| AI turns per simulation | 15 |
+| Avg input tokens/turn | 1,500 |
+| Avg output tokens/turn | 400 |
+| Video storage per session | 40 MB |
+| Peak concurrent users | 30 / 50 / 75 |
 
 ### Monthly Cost Estimates
 
@@ -521,266 +385,205 @@ S4 (Simulation Service - emit event)
 
 | Component | Low | Expected | High | Calculation |
 |-----------|-----|----------|------|-------------|
-| Claude 3.5 Sonnet - Input | $432 | $648 | $864 | students × 4 sims × 18 turns × 2K tokens × $0.003/1K |
-| Claude 3.5 Sonnet - Output | $540 | $810 | $1,080 | students × 4 sims × 18 turns × 500 tokens × $0.015/1K |
-| Titan Embeddings | $20 | $30 | $40 | Scenario indexing, search |
-| **Bedrock Subtotal** | **$992** | **$1,488** | **$1,984** | |
+| Claude 3.5 Sonnet - Input | $81 | $142 | $203 | students × 3 sims × 15 turns × 1.5K × $0.003/1K |
+| Claude 3.5 Sonnet - Output | $54 | $95 | $135 | students × 3 sims × 15 turns × 0.4K × $0.015/1K |
+| **Bedrock Subtotal** | **$135** | **$237** | **$338** | |
 
 #### 6.2 Compute (ECS Fargate)
 
 | Component | Low | Expected | High | Calculation |
 |-----------|-----|----------|------|-------------|
-| API Services (4 vCPU, 8GB) | $420 | $630 | $840 | 2-3-4 tasks × $0.04/vCPU-hr + $0.004/GB-hr |
-| Background Workers (2 vCPU, 4GB) | $140 | $210 | $280 | 1-1.5-2 tasks |
-| Lambda (event processing) | $50 | $75 | $100 | Invocations + duration |
-| **Compute Subtotal** | **$610** | **$915** | **$1,220** | |
+| API Service (2 vCPU, 4GB × 1 task) | $120 | $120 | $180 | 1-1.5 tasks always-on |
+| **Compute Subtotal** | **$120** | **$120** | **$180** | |
 
-#### 6.3 Databases
+#### 6.3 Database
 
 | Component | Low | Expected | High | Calculation |
 |-----------|-----|----------|------|-------------|
-| Aurora PostgreSQL Serverless v2 | $300 | $450 | $600 | 2-4 ACU average |
-| Aurora Storage | $30 | $45 | $60 | ~300 GB |
-| DynamoDB (on-demand) | $100 | $150 | $200 | Read/write units |
-| ElastiCache Redis (cache.t3.medium) | $80 | $80 | $160 | 1-2 nodes |
-| OpenSearch (t3.small.search) | $100 | $100 | $200 | 1-2 nodes |
-| **Database Subtotal** | **$610** | **$825** | **$1,220** | |
+| RDS PostgreSQL (db.t3.medium) | $50 | $50 | $50 | Single instance |
+| RDS Storage (50 GB) | $6 | $6 | $6 | gp3 storage |
+| RDS Backups | $5 | $5 | $5 | Automated snapshots |
+| **Database Subtotal** | **$61** | **$61** | **$61** | |
 
 #### 6.4 Storage
 
 | Component | Low | Expected | High | Calculation |
 |-----------|-----|----------|------|-------------|
-| S3 Standard (media) | $50 | $75 | $100 | ~2-4 TB active |
-| S3 Intelligent-Tiering (archive) | $30 | $45 | $60 | Older media |
-| S3 Transfer | $20 | $30 | $40 | Egress |
-| Timestream (analytics) | $80 | $120 | $160 | Write + query + storage |
-| **Storage Subtotal** | **$180** | **$270** | **$360** | |
+| S3 Standard (media) | $5 | $8 | $12 | 200-500 GB |
+| S3 Transfer | $5 | $8 | $10 | Egress |
+| **Storage Subtotal** | **$10** | **$16** | **$22** | |
 
 #### 6.5 Networking
 
 | Component | Low | Expected | High | Calculation |
 |-----------|-----|----------|------|-------------|
-| CloudFront | $100 | $150 | $200 | Data transfer + requests |
-| API Gateway | $80 | $120 | $160 | REST + WebSocket |
-| NAT Gateway | $90 | $90 | $90 | Fixed + data processing |
-| VPC Endpoints | $30 | $30 | $30 | S3, DynamoDB, etc. |
-| **Networking Subtotal** | **$300** | **$390** | **$480** | |
+| CloudFront | $20 | $30 | $40 | Data transfer |
+| API Gateway | $15 | $25 | $35 | REST + WebSocket |
+| NAT Gateway | $45 | $45 | $45 | Fixed cost |
+| **Networking Subtotal** | **$80** | **$100** | **$120** | |
 
-#### 6.6 Monitoring & Logging
-
-| Component | Low | Expected | High | Calculation |
-|-----------|-----|----------|------|-------------|
-| CloudWatch Logs | $50 | $75 | $100 | Ingestion + storage |
-| CloudWatch Metrics | $30 | $45 | $60 | Custom metrics |
-| X-Ray | $20 | $30 | $40 | Traces |
-| Secrets Manager | $10 | $10 | $10 | Secret storage |
-| **Observability Subtotal** | **$110** | **$160** | **$210** | |
-
-#### 6.7 Security & Identity
+#### 6.6 Monitoring & Security
 
 | Component | Low | Expected | High | Calculation |
 |-----------|-----|----------|------|-------------|
-| Cognito | $50 | $75 | $100 | MAU pricing |
-| WAF | $30 | $30 | $30 | Rules + requests |
-| KMS | $20 | $20 | $20 | Key management |
-| **Security Subtotal** | **$100** | **$125** | **$150** | |
+| CloudWatch Logs | $10 | $15 | $20 | Ingestion |
+| CloudWatch Alarms | $5 | $5 | $5 | ~10 alarms |
+| Cognito | $0 | $0 | $0 | Free tier (50K MAU) |
+| Secrets Manager | $5 | $5 | $5 | ~10 secrets |
+| **Observability Subtotal** | **$20** | **$25** | **$30** | |
 
-### Total Monthly Cost Summary
+### Total Monthly Cost Summary (Pilot)
 
 | Category | Low | Expected | High |
 |----------|-----|----------|------|
-| AWS Bedrock (AI) | $992 | $1,488 | $1,984 |
-| Compute (ECS/Lambda) | $610 | $915 | $1,220 |
-| Databases | $610 | $825 | $1,220 |
-| Storage | $180 | $270 | $360 |
-| Networking | $300 | $390 | $480 |
-| Monitoring/Logging | $110 | $160 | $210 |
-| Security/Identity | $100 | $125 | $150 |
-| **Monthly Total** | **$2,902** | **$4,173** | **$5,624** |
-| **Annual Total** | **$34,824** | **$50,076** | **$67,488** |
+| AWS Bedrock (AI) | $135 | $237 | $338 |
+| Compute (ECS) | $120 | $120 | $180 |
+| Database (RDS) | $61 | $61 | $61 |
+| Storage (S3) | $10 | $16 | $22 |
+| Networking | $80 | $100 | $120 |
+| Monitoring/Security | $20 | $25 | $30 |
+| **Monthly Total** | **$426** | **$559** | **$751** |
+| **Annual Total** | **$5,112** | **$6,708** | **$9,012** |
 
-### Cost Optimization Opportunities
+### Cost Summary
 
-| Opportunity | Potential Savings | Implementation |
-|-------------|-------------------|----------------|
-| Reserved Instances (Fargate) | 20-30% on compute | 1-year commitment |
-| Aurora Reserved Capacity | 30-40% on database | 1-year commitment |
-| Prompt caching | 10-20% on AI | Cache common prompts |
-| Model routing (Llama for simple tasks) | 15-25% on AI | Implement routing logic |
-| **Optimized Annual (Expected)** | **~$38,000-42,000** | With optimizations |
+| Scenario | Monthly | Annual |
+|----------|---------|--------|
+| **Low** (200 students) | $426 | $5,112 |
+| **Expected** (350 students) | $559 | $6,708 |
+| **High** (500 students) | $751 | $9,012 |
 
 ### Excluded from Estimate
 
 | Item | Reason |
 |------|--------|
-| Taevus avatar costs | Per scope requirements (external managed service) |
-| Dev/Staging environments | Add ~20% for non-production |
-| Data transfer (heavy video) | May increase with usage patterns |
-| Third-party SaaS (error tracking, etc.) | Optional additions |
-| Support plans | AWS Support (Business: ~$100+/mo) |
+| **Tavus costs** | External managed service (per scope) |
+| Dev/Staging environments | Optional; add ~30% if needed |
+| AWS Support | Business support ~$100/mo (optional) |
+| Domain/SSL | Minimal cost, usually existing |
 
 ---
 
 ## 7. Explicit Exclusions
 
-The following items are **explicitly out of scope** for this architecture and cost estimate:
+The following items are **explicitly out of scope** for this pilot:
 
 ### 7.1 LMS Integrations
 | Exclusion | Description |
 |-----------|-------------|
-| LTI 1.3 Integration | No Learning Tools Interoperability support |
-| Canvas Integration | No Canvas LMS connectivity |
-| Blackboard Integration | No Blackboard LMS connectivity |
-| Brightspace Integration | No D2L Brightspace connectivity |
-| Grade Passback | No automatic grade sync to external systems |
-| Roster Sync | No automatic enrollment from LMS |
+| LTI 1.3 | No Learning Tools Interoperability |
+| Canvas | No Canvas LMS integration |
+| Blackboard | No Blackboard integration |
+| Brightspace | No D2L Brightspace integration |
+| Grade Passback | No automatic grade sync |
+| Roster Sync | No LMS roster integration |
 
 ### 7.2 Financial Systems
 | Exclusion | Description |
 |-----------|-------------|
-| Billing Systems | No subscription or payment management |
-| Payment Processing | No credit card or payment gateway integration |
-| Usage-Based Billing | No metered billing for external parties |
-| Invoice Generation | No financial document generation |
+| Billing | No payment/subscription management |
+| Payment Processing | No credit card integration |
+| Invoicing | No invoice generation |
 
-### 7.3 Marketing & Public-Facing
+### 7.3 Marketing
 | Exclusion | Description |
 |-----------|-------------|
 | Marketing Website | No public marketing site |
-| Landing Pages | No lead generation pages |
-| CMS Integration | No content management for marketing |
-| SEO Optimization | No public search optimization |
+| Landing Pages | No lead generation |
 
 ### 7.4 Avatar Costs
 | Exclusion | Description |
 |-----------|-------------|
-| Taevus Licensing | Taevus costs are external to this estimate |
-| Avatar API Usage | Per-minute/per-render costs not included |
-| Avatar Customization | Custom avatar creation costs not included |
+| Tavus Licensing | Tavus costs are external |
+| Tavus API Usage | Per-minute costs not included |
 
-### 7.5 Advanced Features (Phase 2+)
+### 7.5 Advanced Features (Post-Pilot)
 | Exclusion | Description |
 |-----------|-------------|
-| Mobile Native Apps | iOS/Android native applications |
-| Offline Mode | Offline simulation capability |
-| Multi-Language | Internationalization/localization |
-| Advanced Biometrics | Non-verbal behavioral analysis |
-| VR/AR Integration | Immersive reality features |
-| Multi-Client Simulations | Multiple AI clients in one session |
+| Mobile Apps | No iOS/Android native apps |
+| Offline Mode | No offline capability |
+| Multi-Language | No internationalization |
+| Advanced Analytics | No cohort comparison, predictive |
+| VR/AR | No immersive features |
+| Multi-Client Sims | Single client per simulation |
 
-### 7.6 Infrastructure
+### 7.6 Enterprise Infrastructure
 | Exclusion | Description |
 |-----------|-------------|
-| On-Premises Deployment | Cloud-only architecture |
-| Multi-Cloud | AWS-only deployment |
-| Custom Domain/SSL | Assumes AWS-managed certificates |
-| Dedicated Support | Standard AWS support assumed |
+| Multi-AZ Database | Single-AZ for pilot (upgrade post-pilot) |
+| Redis Caching | Not needed at pilot scale |
+| OpenSearch | PostgreSQL full-text sufficient |
+| Timestream | PostgreSQL analytics sufficient |
+| X-Ray Tracing | Not needed for pilot |
 
 ### 7.7 Compliance Certifications
 | Exclusion | Description |
 |-----------|-------------|
-| SOC 2 Audit | Not included in Phase 1 |
-| HIPAA BAA | Healthcare compliance not required |
-| FedRAMP | Federal compliance not required |
-| GDPR | EU compliance not required (US institution) |
+| SOC 2 Audit | Post-pilot consideration |
+| HIPAA | Not required |
+| FedRAMP | Not required |
 
 ---
 
-## Appendix A: Mermaid Diagram Code
+## Appendix A: Mermaid Diagram Code (Pilot)
 
 ```mermaid
 flowchart TB
-    subgraph Users["External Users"]
+    subgraph Users["Users"]
         Student["👤 Students"]
         Faculty["👨‍🏫 Faculty"]
-        Admin["⚙️ Administrators"]
+        Admin["⚙️ Admin"]
     end
 
-    subgraph Edge["Edge Layer"]
-        CF["CloudFront CDN"]
-        WAF["AWS WAF"]
+    subgraph Frontend["Frontend"]
+        CF["CloudFront"]
+        S3Static["S3 Assets"]
+        NextJS["Next.js App"]
     end
 
-    subgraph Frontend["Presentation Tier"]
-        S3["S3 Static Assets"]
-        NextJS["Next.js App\n(Lambda@Edge)"]
+    subgraph API["API Layer"]
+        APIGW["API Gateway"]
+        WSAPI["WebSocket API"]
     end
 
-    subgraph Gateway["API Gateway Layer"]
-        APIGW["API Gateway\n(REST)"]
-        WSAPI["API Gateway\n(WebSocket)"]
+    subgraph Backend["Backend (ECS Fargate)"]
+        APISvc["API Service"]
     end
 
-    subgraph Compute["Application Tier (ECS Fargate)"]
-        Auth["Auth Service"]
-        UserSvc["User Service"]
-        ScenarioSvc["Scenario Service"]
-        SimSvc["Simulation Service"]
-        AssessSvc["Assessment Service"]
-        AnalyticsSvc["Analytics Service"]
+    subgraph AI["AI Services"]
+        Bedrock["AWS Bedrock\n(Claude 3.5)"]
+        Tavus["Tavus\n(Avatar + STT + TTS)"]
     end
 
-    subgraph AI["Intelligence Tier"]
-        Bedrock["AWS Bedrock\n(Claude/Llama/Titan)"]
-        Transcribe["Amazon Transcribe"]
-        Polly["Amazon Polly"]
-        Taevus["Taevus\n(External Avatar)"]
+    subgraph Data["Data Layer"]
+        RDS["RDS PostgreSQL"]
+        S3Media["S3 Media"]
     end
 
-    subgraph Data["Data Tier"]
-        Aurora["Aurora PostgreSQL"]
-        DynamoDB["DynamoDB"]
-        S3Media["S3 Media Store"]
-        Timestream["Timestream"]
-        Redis["ElastiCache Redis"]
-    end
-
-    subgraph Security["Security Boundary"]
+    subgraph Auth["Auth"]
         Cognito["Cognito"]
-        Secrets["Secrets Manager"]
-        KMS["KMS"]
     end
 
     Users --> CF
-    CF --> WAF
-    WAF --> APIGW
-    WAF --> WSAPI
-    CF --> S3
+    CF --> S3Static
     CF --> NextJS
-
-    APIGW --> Auth
-    APIGW --> UserSvc
-    APIGW --> ScenarioSvc
-    APIGW --> SimSvc
-    APIGW --> AssessSvc
-    APIGW --> AnalyticsSvc
-
-    WSAPI --> SimSvc
-
-    Auth --> Cognito
-    SimSvc --> Bedrock
-    SimSvc --> Transcribe
-    SimSvc --> Polly
-    SimSvc --> Taevus
-
-    Auth --> Aurora
-    UserSvc --> Aurora
-    ScenarioSvc --> Aurora
-    AssessSvc --> Aurora
-
-    SimSvc --> DynamoDB
-    SimSvc --> Redis
-    SimSvc --> S3Media
-
-    AnalyticsSvc --> Timestream
-
-    Compute --> Secrets
-    Data --> KMS
+    
+    NextJS --> APIGW
+    NextJS --> WSAPI
+    
+    APIGW --> APISvc
+    WSAPI --> APISvc
+    
+    APISvc --> Cognito
+    APISvc --> Bedrock
+    APISvc --> Tavus
+    APISvc --> RDS
+    APISvc --> S3Media
 ```
 
 ---
 
-## Appendix B: Technology Stack Summary
+## Appendix B: Technology Stack Summary (Pilot)
 
 | Layer | Technology | Version |
 |-------|------------|---------|
@@ -791,30 +594,32 @@ flowchart TB
 | **Backend** | Node.js | 22 LTS |
 | | NestJS | 10.x |
 | | Prisma | 5.x |
-| | TypeScript | 5.x |
 | **AI** | AWS Bedrock | - |
 | | Claude | 3.5 Sonnet |
-| | Llama | 3.1 70B |
-| | Titan Embeddings | v2 |
-| **Avatar** | Taevus | Current API |
-| **Speech** | Amazon Transcribe | - |
-| | Amazon Polly | - |
-| **Database** | Aurora PostgreSQL | 15.x |
-| | DynamoDB | - |
-| | ElastiCache Redis | 7.x |
-| | OpenSearch | 2.x |
-| | Timestream | - |
+| **Avatar** | Tavus | Current API |
+| **Database** | RDS PostgreSQL | 15.x |
 | **Infrastructure** | ECS Fargate | - |
-| | Lambda | Node 22 |
 | | API Gateway | v2 |
 | | CloudFront | - |
 | | S3 | - |
 | **Security** | Cognito | - |
-| | WAF | v2 |
-| | KMS | - |
 | **DevOps** | GitHub Actions | - |
-| | Terraform | 1.x |
 | | Docker | - |
+
+---
+
+## Appendix C: Post-Pilot Upgrade Path
+
+When scaling beyond pilot, consider adding:
+
+| Component | When to Add | Est. Additional Cost |
+|-----------|-------------|---------------------|
+| Aurora Serverless | > 500 students | +$200-400/mo |
+| ElastiCache Redis | > 100 concurrent | +$80-160/mo |
+| Multi-AZ Database | Production SLA required | +$50/mo |
+| OpenSearch | Advanced search needed | +$100-200/mo |
+| WAF | Public exposure concerns | +$30/mo |
+| X-Ray | Performance debugging | +$20/mo |
 
 ---
 
@@ -822,8 +627,9 @@ flowchart TB
 
 | Version | Date | Author | Changes |
 |---------|------|--------|---------|
-| 2.0 | January 2026 | OxbridgeEducation | Removed LTI, AWS-native architecture, Bedrock integration |
+| 2.0 | January 2026 | OxbridgeEducation | Initial no-LTI architecture |
+| 2.1 | January 2026 | OxbridgeEducation | Pilot simplification, Tavus handles STT/TTS |
 
 ---
 
-*This document is intended for contract and technical planning purposes. All cost estimates are based on published AWS pricing as of January 2026 and actual costs may vary based on usage patterns.*
+*This document is for pilot program planning and contract purposes. Costs are estimates based on AWS pricing as of January 2026. Tavus costs are excluded and managed separately.*
