@@ -623,13 +623,251 @@ When scaling beyond pilot, consider adding:
 
 ---
 
+## Appendix D: Google Cloud Platform (GCP) Alternative
+
+This section provides a complete GCP-based alternative to the AWS architecture.
+
+### D.1 Service Mapping: AWS → GCP
+
+| Function | AWS Service | GCP Equivalent | Notes |
+|----------|-------------|----------------|-------|
+| **Compute** | ECS Fargate | Cloud Run | Serverless containers, similar pricing model |
+| **Database** | RDS PostgreSQL | Cloud SQL PostgreSQL | Managed PostgreSQL, comparable features |
+| **Object Storage** | S3 | Cloud Storage | Nearly identical functionality |
+| **CDN** | CloudFront | Cloud CDN | Global edge caching |
+| **API Gateway** | API Gateway | Cloud Endpoints / API Gateway | REST + WebSocket support |
+| **Auth** | Cognito | Firebase Auth / Identity Platform | User management, SSO, SAML |
+| **Secrets** | Secrets Manager | Secret Manager | Same functionality |
+| **Logging** | CloudWatch Logs | Cloud Logging | Centralized logging |
+| **Monitoring** | CloudWatch | Cloud Monitoring | Metrics and alerting |
+| **AI/LLM** | Bedrock (Claude) | Vertex AI (Claude/Gemini) | Claude available via Vertex AI |
+| **Networking** | VPC + NAT Gateway | VPC + Cloud NAT | Same concepts |
+
+### D.2 GCP Architecture (Pilot)
+
+```
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                              PRESENTATION TIER                               │
+│  • Next.js 15 Web Application                                               │
+│  • Cloud CDN                                                                 │
+│  • Cloud Storage (Static Assets)                                            │
+└─────────────────────────────────────────────────────────────────────────────┘
+                                      │
+                                      ▼
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                              APPLICATION TIER                                │
+│  • Cloud Run (Containerized API)                                            │
+│  • Cloud Endpoints (API Management)                                          │
+└─────────────────────────────────────────────────────────────────────────────┘
+                                      │
+                                      ▼
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                              INTELLIGENCE TIER                               │
+│  • Vertex AI (Claude 3.5 Sonnet or Gemini 1.5 Pro)                          │
+│  • Tavus (Avatar + STT + TTS) — External                                    │
+└─────────────────────────────────────────────────────────────────────────────┘
+                                      │
+                                      ▼
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                                DATA TIER                                     │
+│  • Cloud SQL PostgreSQL                                                     │
+│  • Cloud Storage (Media)                                                     │
+└─────────────────────────────────────────────────────────────────────────────┘
+```
+
+### D.3 GCP Monthly Cost Estimates (Pilot)
+
+#### Assumptions (Same as AWS)
+| Parameter | Value |
+|-----------|-------|
+| Active students/month | 200 (low) / 350 (expected) / 500 (high) |
+| Simulations per student/month | 3 |
+| AI turns per simulation | 15 |
+
+#### D.3.1 Vertex AI (LLM)
+
+| Component | Low | Expected | High | Notes |
+|-----------|-----|----------|------|-------|
+| Claude 3.5 Sonnet - Input | $81 | $142 | $203 | Same pricing via Vertex AI |
+| Claude 3.5 Sonnet - Output | $54 | $95 | $135 | Same pricing via Vertex AI |
+| **OR Gemini 1.5 Pro** | $45 | $79 | $113 | ~35% cheaper alternative |
+| **AI Subtotal (Claude)** | **$135** | **$237** | **$338** | |
+| **AI Subtotal (Gemini)** | **$45** | **$79** | **$113** | If using Gemini instead |
+
+#### D.3.2 Compute (Cloud Run)
+
+| Component | Low | Expected | High | Calculation |
+|-----------|-----|----------|------|-------------|
+| Cloud Run (2 vCPU, 4GB) | $90 | $90 | $135 | Pay-per-request + min instances |
+| **Compute Subtotal** | **$90** | **$90** | **$135** | ~25% less than ECS Fargate |
+
+#### D.3.3 Database (Cloud SQL)
+
+| Component | Low | Expected | High | Calculation |
+|-----------|-----|----------|------|-------------|
+| Cloud SQL PostgreSQL (db-g1-small) | $45 | $45 | $45 | Single instance |
+| Cloud SQL Storage (50 GB) | $9 | $9 | $9 | SSD storage |
+| Automated Backups | $3 | $3 | $3 | Included |
+| **Database Subtotal** | **$57** | **$57** | **$57** | ~7% less than RDS |
+
+#### D.3.4 Storage (Cloud Storage)
+
+| Component | Low | Expected | High | Calculation |
+|-----------|-----|----------|------|-------------|
+| Cloud Storage Standard | $5 | $8 | $10 | 200-500 GB |
+| Egress | $6 | $10 | $14 | Data transfer |
+| **Storage Subtotal** | **$11** | **$18** | **$24** | Similar to S3 |
+
+#### D.3.5 Networking
+
+| Component | Low | Expected | High | Calculation |
+|-----------|-----|----------|------|-------------|
+| Cloud CDN | $15 | $25 | $35 | Data transfer |
+| Cloud NAT | $32 | $32 | $32 | Fixed + data processing |
+| Load Balancer | $18 | $18 | $18 | Forwarding rules |
+| **Networking Subtotal** | **$65** | **$75** | **$85** | ~25% less than AWS |
+
+#### D.3.6 Monitoring & Security
+
+| Component | Low | Expected | High | Calculation |
+|-----------|-----|----------|------|-------------|
+| Cloud Logging | $5 | $8 | $10 | First 50GB free |
+| Cloud Monitoring | $0 | $0 | $0 | Basic metrics free |
+| Identity Platform | $0 | $0 | $0 | Free tier (50K MAU) |
+| Secret Manager | $2 | $2 | $2 | ~10 secrets |
+| **Observability Subtotal** | **$7** | **$10** | **$12** | ~60% less than AWS |
+
+### D.4 GCP Total Monthly Cost Summary
+
+| Category | Low | Expected | High |
+|----------|-----|----------|------|
+| Vertex AI (Claude) | $135 | $237 | $338 |
+| Compute (Cloud Run) | $90 | $90 | $135 |
+| Database (Cloud SQL) | $57 | $57 | $57 |
+| Storage | $11 | $18 | $24 |
+| Networking | $65 | $75 | $85 |
+| Monitoring/Security | $7 | $10 | $12 |
+| **Monthly Total (Claude)** | **$365** | **$487** | **$651** |
+| **Annual Total (Claude)** | **$4,380** | **$5,844** | **$7,812** |
+
+#### With Gemini 1.5 Pro Instead of Claude
+
+| Scenario | Monthly | Annual |
+|----------|---------|--------|
+| **Low** (200 students) | $275 | $3,300 |
+| **Expected** (350 students) | $329 | $3,948 |
+| **High** (500 students) | $426 | $5,112 |
+
+### D.5 AWS vs GCP Cost Comparison
+
+| Scenario | AWS Monthly | GCP Monthly (Claude) | GCP Monthly (Gemini) | Savings |
+|----------|-------------|---------------------|---------------------|---------|
+| **Low** | $426 | $365 | $275 | 14% / 35% |
+| **Expected** | $559 | $487 | $329 | 13% / 41% |
+| **High** | $751 | $651 | $426 | 13% / 43% |
+
+### D.6 AWS vs GCP: Pros & Cons
+
+#### AWS Advantages
+| Advantage | Details |
+|-----------|---------|
+| **Market Leader** | Most mature cloud platform, largest ecosystem |
+| **Bedrock Model Selection** | Native access to Claude, Llama, Titan, Cohere |
+| **Enterprise Adoption** | More likely USC already has AWS relationship |
+| **Documentation** | Most comprehensive docs and community support |
+| **Cognito** | More feature-rich for enterprise SSO/SAML |
+
+#### GCP Advantages
+| Advantage | Details |
+|-----------|---------|
+| **Cost** | 13-43% lower depending on AI model choice |
+| **Cloud Run** | Simpler than ECS, true pay-per-request, faster cold starts |
+| **Gemini Option** | Native Google AI model, potentially better for education use cases |
+| **Firebase Auth** | Easier to set up for simpler auth needs |
+| **Free Tier** | More generous free tier for logging/monitoring |
+| **BigQuery** | Superior analytics if needed post-pilot |
+
+#### Neutral / Similar
+| Factor | Notes |
+|--------|-------|
+| **Security** | Both FERPA-capable, similar compliance certifications |
+| **Reliability** | Both offer 99.9%+ SLAs |
+| **PostgreSQL** | Both offer managed PostgreSQL with similar features |
+| **Global CDN** | Both have global edge networks |
+
+### D.7 Recommendation
+
+| If... | Then Choose |
+|-------|-------------|
+| USC has existing AWS relationship/credits | **AWS** |
+| Cost is primary concern | **GCP with Gemini** (41% savings) |
+| Claude AI quality is required | **AWS or GCP** (same Claude pricing) |
+| Team has more AWS experience | **AWS** |
+| Want simplest container deployment | **GCP Cloud Run** |
+| May need advanced analytics later | **GCP** (BigQuery advantage) |
+
+### D.8 GCP Mermaid Diagram
+
+```mermaid
+flowchart TB
+    subgraph Users["Users"]
+        Student["👤 Students"]
+        Faculty["👨‍🏫 Faculty"]
+        Admin["⚙️ Admin"]
+    end
+
+    subgraph Frontend["Frontend"]
+        CDN["Cloud CDN"]
+        GCS["Cloud Storage"]
+        NextJS["Next.js App"]
+    end
+
+    subgraph API["API Layer"]
+        LB["Cloud Load Balancer"]
+    end
+
+    subgraph Backend["Backend (Cloud Run)"]
+        APISvc["API Service"]
+    end
+
+    subgraph AI["AI Services"]
+        Vertex["Vertex AI\n(Claude/Gemini)"]
+        Tavus["Tavus\n(Avatar + STT + TTS)"]
+    end
+
+    subgraph Data["Data Layer"]
+        CloudSQL["Cloud SQL PostgreSQL"]
+        GCSMedia["Cloud Storage Media"]
+    end
+
+    subgraph Auth["Auth"]
+        Firebase["Identity Platform"]
+    end
+
+    Users --> CDN
+    CDN --> GCS
+    CDN --> NextJS
+    
+    NextJS --> LB
+    LB --> APISvc
+    
+    APISvc --> Firebase
+    APISvc --> Vertex
+    APISvc --> Tavus
+    APISvc --> CloudSQL
+    APISvc --> GCSMedia
+```
+
+---
+
 ## Document Control
 
 | Version | Date | Author | Changes |
 |---------|------|--------|---------|
 | 2.0 | January 2026 | OxbridgeEducation | Initial no-LTI architecture |
 | 2.1 | January 2026 | OxbridgeEducation | Pilot simplification, Tavus handles STT/TTS |
+| 2.2 | January 2026 | OxbridgeEducation | Added GCP alternative (Appendix D) |
 
 ---
 
-*This document is for pilot program planning and contract purposes. Costs are estimates based on AWS pricing as of January 2026. Tavus costs are excluded and managed separately.*
+*This document is for pilot program planning and contract purposes. Costs are estimates based on AWS/GCP pricing as of January 2026. Tavus costs are excluded and managed separately.*
