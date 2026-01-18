@@ -376,8 +376,14 @@ U2 (Faculty)
 | AI turns per simulation | 15 |
 | Avg input tokens/turn | 1,500 |
 | Avg output tokens/turn | 400 |
-| Video storage per session | 40 MB |
+| Session duration | ~15 minutes |
+| Video storage per session | 200 MB (720p quality) |
 | Peak concurrent users | 20 / 40 / 60 |
+
+**Video Storage Note:** 15-minute sessions at 720p (~2 Mbps) = ~200 MB. Options to reduce:
+- 480p quality: ~100 MB/session (50% reduction)
+- Audio-only fallback: ~15 MB/session (92% reduction)
+- 30-day retention then delete: Caps cumulative growth
 
 ### Monthly Cost Estimates
 
@@ -409,9 +415,20 @@ U2 (Faculty)
 
 | Component | Low | Expected | High | Calculation |
 |-----------|-----|----------|------|-------------|
-| S3 Standard (media) | $12 | $24 | $35 | 48-144 GB/month new + cumulative |
-| S3 Transfer | $5 | $10 | $15 | Egress |
-| **Storage Subtotal** | **$17** | **$34** | **$50** | |
+| S3 Standard (media) | $55 | $110 | $165 | 240-720 GB/month new × avg 6mo retention |
+| S3 Transfer (egress) | $8 | $15 | $22 | ~20% videos reviewed |
+| **Storage Subtotal** | **$63** | **$125** | **$187** | |
+
+**Storage Growth Warning:** At 200 MB/session with 1-year retention:
+- Low (100 students): ~2.9 TB after 12 months
+- Expected (200 students): ~5.8 TB after 12 months  
+- High (300 students): ~8.6 TB after 12 months
+
+**Cost Mitigation Options:**
+- Use S3 Intelligent-Tiering (auto-moves to cheaper storage): saves 30-40%
+- Reduce retention to 90 days: reduces cumulative storage 75%
+- Use 480p video quality: reduces storage 50%
+- Store audio-only + transcript (no video): reduces storage 90%
 
 #### 6.5 Networking
 
@@ -439,19 +456,27 @@ U2 (Faculty)
 | AWS Bedrock (AI) | $189 | $378 | $567 |
 | Compute (ECS) | $120 | $120 | $150 |
 | Database (RDS) | $61 | $61 | $61 |
-| Storage (S3) | $17 | $34 | $50 |
+| Storage (S3) | $63 | $125 | $187 |
 | Networking | $80 | $105 | $130 |
 | Monitoring/Security | $18 | $22 | $28 |
-| **Monthly Total** | **$485** | **$720** | **$986** |
-| **Annual Total** | **$5,820** | **$8,640** | **$11,832** |
+| **Monthly Total** | **$531** | **$811** | **$1,123** |
+| **Annual Total** | **$6,372** | **$9,732** | **$13,476** |
 
 ### Cost Summary
 
 | Scenario | Monthly | Annual |
 |----------|---------|--------|
-| **Low** (100 students) | $485 | $5,820 |
-| **Expected** (200 students) | $720 | $8,640 |
-| **High** (300 students) | $986 | $11,832 |
+| **Low** (100 students) | $531 | $6,372 |
+| **Expected** (200 students) | $811 | $9,732 |
+| **High** (300 students) | $1,123 | $13,476 |
+
+### With Storage Optimization (90-day retention + S3 Intelligent-Tiering)
+
+| Scenario | Monthly | Annual | Savings |
+|----------|---------|--------|---------|
+| **Low** (100 students) | $490 | $5,880 | -8% |
+| **Expected** (200 students) | $730 | $8,760 | -10% |
+| **High** (300 students) | $1,000 | $12,000 | -11% |
 
 ### Excluded from Estimate
 
@@ -713,9 +738,9 @@ This section provides a complete GCP-based alternative to the AWS architecture.
 
 | Component | Low | Expected | High | Calculation |
 |-----------|-----|----------|------|-------------|
-| Cloud Storage Standard | $10 | $20 | $30 | 48-144 GB/month new + cumulative |
-| Egress | $6 | $12 | $18 | Data transfer |
-| **Storage Subtotal** | **$16** | **$32** | **$48** | Similar to S3 |
+| Cloud Storage Standard | $50 | $100 | $150 | 240-720 GB/month × avg 6mo retention |
+| Egress | $10 | $18 | $26 | ~20% videos reviewed |
+| **Storage Subtotal** | **$60** | **$118** | **$176** | Similar to S3 |
 
 #### D.3.5 Networking
 
@@ -743,27 +768,27 @@ This section provides a complete GCP-based alternative to the AWS architecture.
 | Vertex AI (Claude) | $189 | $378 | $567 |
 | Compute (Cloud Run) | $90 | $90 | $115 |
 | Database (Cloud SQL) | $57 | $57 | $57 |
-| Storage | $16 | $32 | $48 |
+| Storage | $60 | $118 | $176 |
 | Networking | $62 | $72 | $82 |
 | Monitoring/Security | $7 | $10 | $14 |
-| **Monthly Total (Claude)** | **$421** | **$639** | **$883** |
-| **Annual Total (Claude)** | **$5,052** | **$7,668** | **$10,596** |
+| **Monthly Total (Claude)** | **$465** | **$725** | **$1,011** |
+| **Annual Total (Claude)** | **$5,580** | **$8,700** | **$12,132** |
 
 #### With Gemini 1.5 Pro Instead of Claude
 
 | Scenario | Monthly | Annual |
 |----------|---------|--------|
-| **Low** (100 students) | $302 | $3,624 |
-| **Expected** (200 students) | $401 | $4,812 |
-| **High** (300 students) | $525 | $6,300 |
+| **Low** (100 students) | $346 | $4,152 |
+| **Expected** (200 students) | $487 | $5,844 |
+| **High** (300 students) | $653 | $7,836 |
 
 ### D.5 AWS vs GCP Cost Comparison
 
 | Scenario | AWS Monthly | GCP Monthly (Claude) | GCP Monthly (Gemini) | Savings vs AWS |
 |----------|-------------|---------------------|---------------------|----------------|
-| **Low** (100) | $485 | $421 | $302 | 13% / 38% |
-| **Expected** (200) | $720 | $639 | $401 | 11% / 44% |
-| **High** (300) | $986 | $883 | $525 | 10% / 47% |
+| **Low** (100) | $531 | $465 | $346 | 12% / 35% |
+| **Expected** (200) | $811 | $725 | $487 | 11% / 40% |
+| **High** (300) | $1,123 | $1,011 | $653 | 10% / 42% |
 
 ### D.6 AWS vs GCP: Pros & Cons
 
@@ -779,7 +804,7 @@ This section provides a complete GCP-based alternative to the AWS architecture.
 #### GCP Advantages
 | Advantage | Details |
 |-----------|---------|
-| **Cost** | 10-47% lower depending on AI model choice |
+| **Cost** | 10-42% lower depending on AI model choice |
 | **Cloud Run** | Simpler than ECS, true pay-per-request, faster cold starts |
 | **Gemini Option** | Native Google AI model, 63% cheaper than Claude |
 | **Firebase Auth** | Easier to set up for simpler auth needs |
@@ -799,7 +824,7 @@ This section provides a complete GCP-based alternative to the AWS architecture.
 | If... | Then Choose |
 |-------|-------------|
 | USC has existing AWS relationship/credits | **AWS** |
-| Cost is primary concern | **GCP with Gemini** (44-47% savings) |
+| Cost is primary concern | **GCP with Gemini** (35-42% savings) |
 | Claude AI quality is required | **AWS or GCP** (same Claude pricing) |
 | Team has more AWS experience | **AWS** |
 | Want simplest container deployment | **GCP Cloud Run** |
