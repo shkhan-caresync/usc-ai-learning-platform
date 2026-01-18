@@ -311,10 +311,10 @@ U2 (Faculty)
 
 | Metric | Target | Notes |
 |--------|--------|-------|
-| **Active Students** | 200-500 | Pilot cohort |
-| **Concurrent Users** | 50 | Peak during class |
-| **Simulations/Day** | 100 | ~2 per active student/week |
-| **Data Growth** | 50 GB/year | Video, audio, transcripts |
+| **Active Students** | 100-300 | Pilot cohort |
+| **Concurrent Users** | 20-60 | Peak during class |
+| **Simulations/Month** | 1,200-3,600 | 12 per student/month |
+| **Data Growth** | 50-150 GB/year | Video, audio, transcripts |
 
 ### 5.2 Availability (Pilot)
 
@@ -371,13 +371,13 @@ U2 (Faculty)
 
 | Parameter | Value |
 |-----------|-------|
-| Active students/month | 200 (low) / 350 (expected) / 500 (high) |
-| Simulations per student/month | 3 |
+| Active students/month | 100 (low) / 200 (expected) / 300 (high) |
+| Simulations per student/month | 12 |
 | AI turns per simulation | 15 |
 | Avg input tokens/turn | 1,500 |
 | Avg output tokens/turn | 400 |
 | Video storage per session | 40 MB |
-| Peak concurrent users | 30 / 50 / 75 |
+| Peak concurrent users | 20 / 40 / 60 |
 
 ### Monthly Cost Estimates
 
@@ -385,16 +385,16 @@ U2 (Faculty)
 
 | Component | Low | Expected | High | Calculation |
 |-----------|-----|----------|------|-------------|
-| Claude 3.5 Sonnet - Input | $81 | $142 | $203 | students × 3 sims × 15 turns × 1.5K × $0.003/1K |
-| Claude 3.5 Sonnet - Output | $54 | $95 | $135 | students × 3 sims × 15 turns × 0.4K × $0.015/1K |
-| **Bedrock Subtotal** | **$135** | **$237** | **$338** | |
+| Claude 3.5 Sonnet - Input | $81 | $162 | $243 | students × 12 sims × 15 turns × 1.5K × $0.003/1K |
+| Claude 3.5 Sonnet - Output | $108 | $216 | $324 | students × 12 sims × 15 turns × 0.4K × $0.015/1K |
+| **Bedrock Subtotal** | **$189** | **$378** | **$567** | |
 
 #### 6.2 Compute (ECS Fargate)
 
 | Component | Low | Expected | High | Calculation |
 |-----------|-----|----------|------|-------------|
-| API Service (2 vCPU, 4GB × 1 task) | $120 | $120 | $180 | 1-1.5 tasks always-on |
-| **Compute Subtotal** | **$120** | **$120** | **$180** | |
+| API Service (2 vCPU, 4GB × 1 task) | $120 | $120 | $150 | 1-1.25 tasks always-on |
+| **Compute Subtotal** | **$120** | **$120** | **$150** | |
 
 #### 6.3 Database
 
@@ -409,49 +409,49 @@ U2 (Faculty)
 
 | Component | Low | Expected | High | Calculation |
 |-----------|-----|----------|------|-------------|
-| S3 Standard (media) | $5 | $8 | $12 | 200-500 GB |
-| S3 Transfer | $5 | $8 | $10 | Egress |
-| **Storage Subtotal** | **$10** | **$16** | **$22** | |
+| S3 Standard (media) | $12 | $24 | $35 | 48-144 GB/month new + cumulative |
+| S3 Transfer | $5 | $10 | $15 | Egress |
+| **Storage Subtotal** | **$17** | **$34** | **$50** | |
 
 #### 6.5 Networking
 
 | Component | Low | Expected | High | Calculation |
 |-----------|-----|----------|------|-------------|
-| CloudFront | $20 | $30 | $40 | Data transfer |
-| API Gateway | $15 | $25 | $35 | REST + WebSocket |
+| CloudFront | $15 | $25 | $35 | Data transfer |
+| API Gateway | $20 | $35 | $50 | REST + WebSocket (more sims) |
 | NAT Gateway | $45 | $45 | $45 | Fixed cost |
-| **Networking Subtotal** | **$80** | **$100** | **$120** | |
+| **Networking Subtotal** | **$80** | **$105** | **$130** | |
 
 #### 6.6 Monitoring & Security
 
 | Component | Low | Expected | High | Calculation |
 |-----------|-----|----------|------|-------------|
-| CloudWatch Logs | $10 | $15 | $20 | Ingestion |
+| CloudWatch Logs | $8 | $12 | $18 | Ingestion |
 | CloudWatch Alarms | $5 | $5 | $5 | ~10 alarms |
 | Cognito | $0 | $0 | $0 | Free tier (50K MAU) |
 | Secrets Manager | $5 | $5 | $5 | ~10 secrets |
-| **Observability Subtotal** | **$20** | **$25** | **$30** | |
+| **Observability Subtotal** | **$18** | **$22** | **$28** | |
 
 ### Total Monthly Cost Summary (Pilot)
 
 | Category | Low | Expected | High |
 |----------|-----|----------|------|
-| AWS Bedrock (AI) | $135 | $237 | $338 |
-| Compute (ECS) | $120 | $120 | $180 |
+| AWS Bedrock (AI) | $189 | $378 | $567 |
+| Compute (ECS) | $120 | $120 | $150 |
 | Database (RDS) | $61 | $61 | $61 |
-| Storage (S3) | $10 | $16 | $22 |
-| Networking | $80 | $100 | $120 |
-| Monitoring/Security | $20 | $25 | $30 |
-| **Monthly Total** | **$426** | **$559** | **$751** |
-| **Annual Total** | **$5,112** | **$6,708** | **$9,012** |
+| Storage (S3) | $17 | $34 | $50 |
+| Networking | $80 | $105 | $130 |
+| Monitoring/Security | $18 | $22 | $28 |
+| **Monthly Total** | **$485** | **$720** | **$986** |
+| **Annual Total** | **$5,820** | **$8,640** | **$11,832** |
 
 ### Cost Summary
 
 | Scenario | Monthly | Annual |
 |----------|---------|--------|
-| **Low** (200 students) | $426 | $5,112 |
-| **Expected** (350 students) | $559 | $6,708 |
-| **High** (500 students) | $751 | $9,012 |
+| **Low** (100 students) | $485 | $5,820 |
+| **Expected** (200 students) | $720 | $8,640 |
+| **High** (300 students) | $986 | $11,832 |
 
 ### Excluded from Estimate
 
@@ -680,26 +680,25 @@ This section provides a complete GCP-based alternative to the AWS architecture.
 #### Assumptions (Same as AWS)
 | Parameter | Value |
 |-----------|-------|
-| Active students/month | 200 (low) / 350 (expected) / 500 (high) |
-| Simulations per student/month | 3 |
+| Active students/month | 100 (low) / 200 (expected) / 300 (high) |
+| Simulations per student/month | 12 |
 | AI turns per simulation | 15 |
 
 #### D.3.1 Vertex AI (LLM)
 
 | Component | Low | Expected | High | Notes |
 |-----------|-----|----------|------|-------|
-| Claude 3.5 Sonnet - Input | $81 | $142 | $203 | Same pricing via Vertex AI |
-| Claude 3.5 Sonnet - Output | $54 | $95 | $135 | Same pricing via Vertex AI |
-| **OR Gemini 1.5 Pro** | $45 | $79 | $113 | ~35% cheaper alternative |
-| **AI Subtotal (Claude)** | **$135** | **$237** | **$338** | |
-| **AI Subtotal (Gemini)** | **$45** | **$79** | **$113** | If using Gemini instead |
+| Claude 3.5 Sonnet - Input | $81 | $162 | $243 | Same pricing via Vertex AI |
+| Claude 3.5 Sonnet - Output | $108 | $216 | $324 | Same pricing via Vertex AI |
+| **AI Subtotal (Claude)** | **$189** | **$378** | **$567** | |
+| **OR Gemini 1.5 Pro** | **$70** | **$140** | **$209** | ~63% cheaper alternative |
 
 #### D.3.2 Compute (Cloud Run)
 
 | Component | Low | Expected | High | Calculation |
 |-----------|-----|----------|------|-------------|
-| Cloud Run (2 vCPU, 4GB) | $90 | $90 | $135 | Pay-per-request + min instances |
-| **Compute Subtotal** | **$90** | **$90** | **$135** | ~25% less than ECS Fargate |
+| Cloud Run (2 vCPU, 4GB) | $90 | $90 | $115 | Pay-per-request + min instances |
+| **Compute Subtotal** | **$90** | **$90** | **$115** | ~25% less than ECS Fargate |
 
 #### D.3.3 Database (Cloud SQL)
 
@@ -714,57 +713,57 @@ This section provides a complete GCP-based alternative to the AWS architecture.
 
 | Component | Low | Expected | High | Calculation |
 |-----------|-----|----------|------|-------------|
-| Cloud Storage Standard | $5 | $8 | $10 | 200-500 GB |
-| Egress | $6 | $10 | $14 | Data transfer |
-| **Storage Subtotal** | **$11** | **$18** | **$24** | Similar to S3 |
+| Cloud Storage Standard | $10 | $20 | $30 | 48-144 GB/month new + cumulative |
+| Egress | $6 | $12 | $18 | Data transfer |
+| **Storage Subtotal** | **$16** | **$32** | **$48** | Similar to S3 |
 
 #### D.3.5 Networking
 
 | Component | Low | Expected | High | Calculation |
 |-----------|-----|----------|------|-------------|
-| Cloud CDN | $15 | $25 | $35 | Data transfer |
+| Cloud CDN | $12 | $22 | $32 | Data transfer |
 | Cloud NAT | $32 | $32 | $32 | Fixed + data processing |
 | Load Balancer | $18 | $18 | $18 | Forwarding rules |
-| **Networking Subtotal** | **$65** | **$75** | **$85** | ~25% less than AWS |
+| **Networking Subtotal** | **$62** | **$72** | **$82** | ~30% less than AWS |
 
 #### D.3.6 Monitoring & Security
 
 | Component | Low | Expected | High | Calculation |
 |-----------|-----|----------|------|-------------|
-| Cloud Logging | $5 | $8 | $10 | First 50GB free |
+| Cloud Logging | $5 | $8 | $12 | First 50GB free |
 | Cloud Monitoring | $0 | $0 | $0 | Basic metrics free |
 | Identity Platform | $0 | $0 | $0 | Free tier (50K MAU) |
 | Secret Manager | $2 | $2 | $2 | ~10 secrets |
-| **Observability Subtotal** | **$7** | **$10** | **$12** | ~60% less than AWS |
+| **Observability Subtotal** | **$7** | **$10** | **$14** | ~60% less than AWS |
 
 ### D.4 GCP Total Monthly Cost Summary
 
 | Category | Low | Expected | High |
 |----------|-----|----------|------|
-| Vertex AI (Claude) | $135 | $237 | $338 |
-| Compute (Cloud Run) | $90 | $90 | $135 |
+| Vertex AI (Claude) | $189 | $378 | $567 |
+| Compute (Cloud Run) | $90 | $90 | $115 |
 | Database (Cloud SQL) | $57 | $57 | $57 |
-| Storage | $11 | $18 | $24 |
-| Networking | $65 | $75 | $85 |
-| Monitoring/Security | $7 | $10 | $12 |
-| **Monthly Total (Claude)** | **$365** | **$487** | **$651** |
-| **Annual Total (Claude)** | **$4,380** | **$5,844** | **$7,812** |
+| Storage | $16 | $32 | $48 |
+| Networking | $62 | $72 | $82 |
+| Monitoring/Security | $7 | $10 | $14 |
+| **Monthly Total (Claude)** | **$421** | **$639** | **$883** |
+| **Annual Total (Claude)** | **$5,052** | **$7,668** | **$10,596** |
 
 #### With Gemini 1.5 Pro Instead of Claude
 
 | Scenario | Monthly | Annual |
 |----------|---------|--------|
-| **Low** (200 students) | $275 | $3,300 |
-| **Expected** (350 students) | $329 | $3,948 |
-| **High** (500 students) | $426 | $5,112 |
+| **Low** (100 students) | $302 | $3,624 |
+| **Expected** (200 students) | $401 | $4,812 |
+| **High** (300 students) | $525 | $6,300 |
 
 ### D.5 AWS vs GCP Cost Comparison
 
-| Scenario | AWS Monthly | GCP Monthly (Claude) | GCP Monthly (Gemini) | Savings |
-|----------|-------------|---------------------|---------------------|---------|
-| **Low** | $426 | $365 | $275 | 14% / 35% |
-| **Expected** | $559 | $487 | $329 | 13% / 41% |
-| **High** | $751 | $651 | $426 | 13% / 43% |
+| Scenario | AWS Monthly | GCP Monthly (Claude) | GCP Monthly (Gemini) | Savings vs AWS |
+|----------|-------------|---------------------|---------------------|----------------|
+| **Low** (100) | $485 | $421 | $302 | 13% / 38% |
+| **Expected** (200) | $720 | $639 | $401 | 11% / 44% |
+| **High** (300) | $986 | $883 | $525 | 10% / 47% |
 
 ### D.6 AWS vs GCP: Pros & Cons
 
@@ -780,9 +779,9 @@ This section provides a complete GCP-based alternative to the AWS architecture.
 #### GCP Advantages
 | Advantage | Details |
 |-----------|---------|
-| **Cost** | 13-43% lower depending on AI model choice |
+| **Cost** | 10-47% lower depending on AI model choice |
 | **Cloud Run** | Simpler than ECS, true pay-per-request, faster cold starts |
-| **Gemini Option** | Native Google AI model, potentially better for education use cases |
+| **Gemini Option** | Native Google AI model, 63% cheaper than Claude |
 | **Firebase Auth** | Easier to set up for simpler auth needs |
 | **Free Tier** | More generous free tier for logging/monitoring |
 | **BigQuery** | Superior analytics if needed post-pilot |
@@ -800,7 +799,7 @@ This section provides a complete GCP-based alternative to the AWS architecture.
 | If... | Then Choose |
 |-------|-------------|
 | USC has existing AWS relationship/credits | **AWS** |
-| Cost is primary concern | **GCP with Gemini** (41% savings) |
+| Cost is primary concern | **GCP with Gemini** (44-47% savings) |
 | Claude AI quality is required | **AWS or GCP** (same Claude pricing) |
 | Team has more AWS experience | **AWS** |
 | Want simplest container deployment | **GCP Cloud Run** |
