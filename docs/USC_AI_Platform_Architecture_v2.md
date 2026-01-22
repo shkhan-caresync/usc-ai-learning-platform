@@ -52,14 +52,15 @@ The USC AI Simulation Platform is architected as a **standalone, cloud-native we
 ┌─────────────────────────────────────────────────────────────────────────────┐
 │                              INTELLIGENCE TIER                               │
 │  • AWS Bedrock (LLM)                                                        │
-│  • Tavus (Avatar + Speech-to-Text + Text-to-Speech) — External              │
+│  • Tavus (Avatar + STT + TTS) — External                                    │
 └─────────────────────────────────────────────────────────────────────────────┘
                                       │
                                       ▼
 ┌─────────────────────────────────────────────────────────────────────────────┐
 │                                DATA TIER                                     │
-│  • RDS PostgreSQL (All Data)                                                │
-│  • S3 (Media Storage)                                                        │
+│  • RDS PostgreSQL (Sessions, Users, Transcripts)                            │
+│  • S3 (Static Assets Only — No PII)                                         │
+│  • USC OneDrive (Video/Audio Recordings — FERPA Data)                       │
 └─────────────────────────────────────────────────────────────────────────────┘
 ```
 
@@ -113,10 +114,11 @@ The following structured description can be converted to Lucidchart, Draw.io, Me
 | A2 | Avatar + Voice | Tavus (External) | AI avatar with integrated STT/TTS |
 
 #### Data Stores
-| ID | Component | AWS Service | Purpose |
-|----|-----------|-------------|---------|
+| ID | Component | Service | Purpose |
+|----|-----------|---------|---------|
 | D1 | Primary Database | RDS PostgreSQL | Users, scenarios, sessions, analytics |
-| D2 | Media Store | S3 | Video recordings, audio, documents |
+| D2 | Static Assets | S3 | Frontend assets (no PII) |
+| D3 | Media Store | **USC OneDrive** | Video/audio recordings (FERPA data) |
 
 #### Security & Auth
 | ID | Component | AWS Service | Purpose |
@@ -220,17 +222,27 @@ U2 (Faculty)
 | **CDN** | CloudFront | Static asset delivery |
 | **API Gateway** | AWS API Gateway | Managed REST + WebSocket |
 
-### Data Architecture (Simplified)
+### Data Architecture (FERPA-Compliant — No TPSR Required)
 
-| Data Type | Storage | Retention |
-|-----------|---------|-----------|
-| User accounts | PostgreSQL | Indefinite |
-| Scenarios | PostgreSQL | Indefinite |
-| Simulation sessions | PostgreSQL (JSONB) | 1 year |
-| Conversation history | PostgreSQL (JSONB) | 1 year |
-| Video recordings | S3 Standard | 1 year |
-| Analytics | PostgreSQL | 1 year |
-| Audit logs | CloudWatch Logs | 1 year |
+| Data Type | Storage | Retention | FERPA Status |
+|-----------|---------|-----------|--------------|
+| User accounts | PostgreSQL | Indefinite | ✅ In-scope DB |
+| Scenarios | PostgreSQL | Indefinite | Non-PII |
+| Simulation sessions | PostgreSQL (JSONB) | 1 year | ✅ In-scope DB |
+| Conversation transcripts | PostgreSQL (JSONB) | 1 year | ✅ In-scope DB |
+| AI feedback/scores | PostgreSQL | 1 year | ✅ In-scope DB |
+| Video/Audio recordings | **USC OneDrive** | Per USC policy | ✅ USC-controlled |
+| Static assets | S3 | Indefinite | Non-PII |
+| Audit logs | CloudWatch Logs | 1 year | Anonymized |
+
+**Key Decision:** Video/audio recordings are pushed to **USC OneDrive** via Microsoft Graph API after each session. This keeps FERPA-protected media under USC's institutional control, avoiding TPSR requirements for third-party storage.
+
+**USC OneDrive Integration:**
+- Platform uploads recordings to designated USC OneDrive folder
+- Organized by: `/Simulations/{Course}/{Student}/{SessionID}/`
+- Faculty access videos directly in OneDrive (familiar interface)
+- USC controls retention, sharing, and compliance
+- Requires: USC to provide OneDrive API credentials (Microsoft Graph)
 
 ---
 
@@ -377,13 +389,16 @@ U2 (Faculty)
 | Avg input tokens/turn | 1,500 |
 | Avg output tokens/turn | 400 |
 | Session duration | ~15 minutes |
-| Video storage per session | 200 MB (720p quality) |
+| Video storage | **USC OneDrive** (~200 MB/session at 720p) |
 | Peak concurrent users | 20 / 40 / 60 |
 
-**Video Storage Note:** 15-minute sessions at 720p (~2 Mbps) = ~200 MB. Options to reduce:
-- 480p quality: ~100 MB/session (50% reduction)
-- Audio-only fallback: ~15 MB/session (92% reduction)
-- 30-day retention then delete: Caps cumulative growth
+**FERPA Data Handling (No TPSR Required):**
+- **Video/Audio:** Pushed to **USC OneDrive** via Microsoft Graph API
+- **Transcripts:** Stored in RDS PostgreSQL
+- **AI Feedback:** Stored in RDS PostgreSQL
+- **Session Metadata:** Stored in RDS PostgreSQL
+- **S3 Usage:** Static assets only (no student PII)
+- **USC OneDrive:** USC-controlled, already FERPA-compliant, no TPSR needed
 
 ### Monthly Cost Estimates
 
@@ -411,24 +426,24 @@ U2 (Faculty)
 | RDS Backups | $5 | $5 | $5 | Automated snapshots |
 | **Database Subtotal** | **$61** | **$61** | **$61** | |
 
-#### 6.4 Storage
+#### 6.4 Storage (Transient Model — No FERPA Data in S3)
 
 | Component | Low | Expected | High | Calculation |
 |-----------|-----|----------|------|-------------|
-| S3 Standard (media) | $55 | $110 | $165 | 240-720 GB/month new × avg 6mo retention |
-| S3 Transfer (egress) | $8 | $15 | $22 | ~20% videos reviewed |
-| **Storage Subtotal** | **$63** | **$125** | **$187** | |
+| S3 (static assets only) | $5 | $5 | $5 | Frontend assets, images, docs |
+| S3 Transfer | $3 | $5 | $8 | Static asset delivery |
+| **Storage Subtotal** | **$8** | **$10** | **$13** | |
 
-**Storage Growth Warning:** At 200 MB/session with 1-year retention:
-- Low (100 students): ~2.9 TB after 12 months
-- Expected (200 students): ~5.8 TB after 12 months  
-- High (300 students): ~8.6 TB after 12 months
+**FERPA-Compliant Data Model:**
+- ✅ **No video/audio stored in S3** — Avoids USC TPSR requirement
+- ✅ **Transcripts in PostgreSQL** — Text-based, minimal storage (~50KB/session)
+- ✅ **AI feedback in PostgreSQL** — Structured data, searchable
+- ✅ **Session metadata in PostgreSQL** — Timestamps, scores, completion status
 
-**Cost Mitigation Options:**
-- Use S3 Intelligent-Tiering (auto-moves to cheaper storage): saves 30-40%
-- Reduce retention to 90 days: reduces cumulative storage 75%
-- Use 480p video quality: reduces storage 50%
-- Store audio-only + transcript (no video): reduces storage 90%
+**Trade-off:** Faculty cannot replay video sessions after completion. They can review:
+- Full conversation transcripts
+- AI-generated feedback and scores
+- Session metadata and analytics
 
 #### 6.5 Networking
 
@@ -456,27 +471,19 @@ U2 (Faculty)
 | AWS Bedrock (AI) | $189 | $378 | $567 |
 | Compute (ECS) | $120 | $120 | $150 |
 | Database (RDS) | $61 | $61 | $61 |
-| Storage (S3) | $63 | $125 | $187 |
+| Storage (S3) | $8 | $10 | $13 |
 | Networking | $80 | $105 | $130 |
 | Monitoring/Security | $18 | $22 | $28 |
-| **Monthly Total** | **$531** | **$811** | **$1,123** |
-| **Annual Total** | **$6,372** | **$9,732** | **$13,476** |
+| **Monthly Total** | **$476** | **$696** | **$949** |
+| **Annual Total** | **$5,712** | **$8,352** | **$11,388** |
 
 ### Cost Summary
 
 | Scenario | Monthly | Annual |
 |----------|---------|--------|
-| **Low** (100 students) | $531 | $6,372 |
-| **Expected** (200 students) | $811 | $9,732 |
-| **High** (300 students) | $1,123 | $13,476 |
-
-### With Storage Optimization (90-day retention + S3 Intelligent-Tiering)
-
-| Scenario | Monthly | Annual | Savings |
-|----------|---------|--------|---------|
-| **Low** (100 students) | $490 | $5,880 | -8% |
-| **Expected** (200 students) | $730 | $8,760 | -10% |
-| **High** (300 students) | $1,000 | $12,000 | -11% |
+| **Low** (100 students) | $476 | $5,712 |
+| **Expected** (200 students) | $696 | $8,352 |
+| **High** (300 students) | $949 | $11,388 |
 
 ### Excluded from Estimate
 
@@ -562,7 +569,7 @@ flowchart TB
 
     subgraph Frontend["Frontend"]
         CF["CloudFront"]
-        S3Static["S3 Assets"]
+        S3Static["S3 Static Assets"]
         NextJS["Next.js App"]
     end
 
@@ -582,7 +589,10 @@ flowchart TB
 
     subgraph Data["Data Layer"]
         RDS["RDS PostgreSQL"]
-        S3Media["S3 Media"]
+    end
+
+    subgraph USC["USC Infrastructure"]
+        OneDrive["USC OneDrive\n(Video/Audio)"]
     end
 
     subgraph Auth["Auth"]
@@ -603,7 +613,7 @@ flowchart TB
     APISvc --> Bedrock
     APISvc --> Tavus
     APISvc --> RDS
-    APISvc --> S3Media
+    APISvc --> OneDrive
 ```
 
 ---
@@ -623,10 +633,11 @@ flowchart TB
 | | Claude | 3.5 Sonnet |
 | **Avatar** | Tavus | Current API |
 | **Database** | RDS PostgreSQL | 15.x |
+| **Media Storage** | USC OneDrive | Microsoft Graph API |
 | **Infrastructure** | ECS Fargate | - |
 | | API Gateway | v2 |
 | | CloudFront | - |
-| | S3 | - |
+| | S3 (static only) | - |
 | **Security** | Cognito | - |
 | **DevOps** | GitHub Actions | - |
 | | Docker | - |
@@ -734,13 +745,13 @@ This section provides a complete GCP-based alternative to the AWS architecture.
 | Automated Backups | $3 | $3 | $3 | Included |
 | **Database Subtotal** | **$57** | **$57** | **$57** | ~7% less than RDS |
 
-#### D.3.4 Storage (Cloud Storage)
+#### D.3.4 Storage (Cloud Storage — Transient Model)
 
 | Component | Low | Expected | High | Calculation |
 |-----------|-----|----------|------|-------------|
-| Cloud Storage Standard | $50 | $100 | $150 | 240-720 GB/month × avg 6mo retention |
-| Egress | $10 | $18 | $26 | ~20% videos reviewed |
-| **Storage Subtotal** | **$60** | **$118** | **$176** | Similar to S3 |
+| Cloud Storage (static assets) | $5 | $5 | $5 | Frontend assets only |
+| Egress | $3 | $5 | $8 | Static asset delivery |
+| **Storage Subtotal** | **$8** | **$10** | **$13** | No FERPA data stored |
 
 #### D.3.5 Networking
 
@@ -768,27 +779,27 @@ This section provides a complete GCP-based alternative to the AWS architecture.
 | Vertex AI (Claude) | $189 | $378 | $567 |
 | Compute (Cloud Run) | $90 | $90 | $115 |
 | Database (Cloud SQL) | $57 | $57 | $57 |
-| Storage | $60 | $118 | $176 |
+| Storage | $8 | $10 | $13 |
 | Networking | $62 | $72 | $82 |
 | Monitoring/Security | $7 | $10 | $14 |
-| **Monthly Total (Claude)** | **$465** | **$725** | **$1,011** |
-| **Annual Total (Claude)** | **$5,580** | **$8,700** | **$12,132** |
+| **Monthly Total (Claude)** | **$413** | **$617** | **$848** |
+| **Annual Total (Claude)** | **$4,956** | **$7,404** | **$10,176** |
 
 #### With Gemini 1.5 Pro Instead of Claude
 
 | Scenario | Monthly | Annual |
 |----------|---------|--------|
-| **Low** (100 students) | $346 | $4,152 |
-| **Expected** (200 students) | $487 | $5,844 |
-| **High** (300 students) | $653 | $7,836 |
+| **Low** (100 students) | $294 | $3,528 |
+| **Expected** (200 students) | $379 | $4,548 |
+| **High** (300 students) | $490 | $5,880 |
 
 ### D.5 AWS vs GCP Cost Comparison
 
 | Scenario | AWS Monthly | GCP Monthly (Claude) | GCP Monthly (Gemini) | Savings vs AWS |
 |----------|-------------|---------------------|---------------------|----------------|
-| **Low** (100) | $531 | $465 | $346 | 12% / 35% |
-| **Expected** (200) | $811 | $725 | $487 | 11% / 40% |
-| **High** (300) | $1,123 | $1,011 | $653 | 10% / 42% |
+| **Low** (100) | $476 | $413 | $294 | 13% / 38% |
+| **Expected** (200) | $696 | $617 | $379 | 11% / 46% |
+| **High** (300) | $949 | $848 | $490 | 11% / 48% |
 
 ### D.6 AWS vs GCP: Pros & Cons
 
@@ -842,7 +853,7 @@ flowchart TB
 
     subgraph Frontend["Frontend"]
         CDN["Cloud CDN"]
-        GCS["Cloud Storage"]
+        GCS["Cloud Storage\n(Static Assets)"]
         NextJS["Next.js App"]
     end
 
@@ -861,7 +872,10 @@ flowchart TB
 
     subgraph Data["Data Layer"]
         CloudSQL["Cloud SQL PostgreSQL"]
-        GCSMedia["Cloud Storage Media"]
+    end
+
+    subgraph USC["USC Infrastructure"]
+        OneDrive["USC OneDrive\n(Video/Audio)"]
     end
 
     subgraph Auth["Auth"]
@@ -879,7 +893,7 @@ flowchart TB
     APISvc --> Vertex
     APISvc --> Tavus
     APISvc --> CloudSQL
-    APISvc --> GCSMedia
+    APISvc --> OneDrive
 ```
 
 ---
@@ -891,6 +905,7 @@ flowchart TB
 | 2.0 | January 2026 | OxbridgeEducation | Initial no-LTI architecture |
 | 2.1 | January 2026 | OxbridgeEducation | Pilot simplification, Tavus handles STT/TTS |
 | 2.2 | January 2026 | OxbridgeEducation | Added GCP alternative (Appendix D) |
+| 2.3 | January 2026 | OxbridgeEducation | USC OneDrive for FERPA video storage (no TPSR) |
 
 ---
 
